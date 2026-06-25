@@ -1,18 +1,5 @@
 # 🎓 IntelLearn: Smart Career Recommendation System
 
-<p align="center">
-  <img src="assets/img/logo.png" alt="IntelLearn Logo" width="180"/>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/JavaScript-ES6-yellow?logo=javascript" />
-  <img src="https://img.shields.io/badge/TensorFlow.js-Machine%20Learning-orange?logo=tensorflow" />
-  <img src="https://img.shields.io/badge/Firebase-Authentication-FFCA28?logo=firebase" />
-  <img src="https://img.shields.io/badge/Firestore-Database-blue" />
-  <img src="https://img.shields.io/badge/Gemini%20API-AI%20Assistant-green" />
-  <img src="https://img.shields.io/badge/License-MIT-success" />
-</p>
-
 ## 📖 Overview
 
 IntelLearn is an AI powered web application that helps students discover suitable career paths based on their skills, interests, academic performance, and responses to assessment questions.
