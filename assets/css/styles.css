@@ -1,0 +1,26 @@
+:root {
+  --soft-bg: #f6f8fb;
+}
+
+.bg-soft { background: var(--soft-bg); }
+
+.card { border-radius: 14px; }
+.btn { border-radius: 12px; }
+
+.form-control, .form-select {
+  border-radius: 12px;
+}
+
+.question-card {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.small-muted { color: #6c757d; font-size: 0.9rem; }
+
+.navbar-brand span {
+  font-weight: 700;
+  letter-spacing: .3px;
+}

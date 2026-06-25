@@ -1,0 +1,2933 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IntelLearn • Student Profiling & Career Guidance</title>
+
+  <!-- Bootstrap 5 + Icons (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- TensorFlow.js (NN demo) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --bg-soft: #f5f7fb;
+      --border: #e6e9f2;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --brand: #0b66c3;
+      --brand-2: #0a58a8;
+      --shadow: 0 10px 24px rgba(17,24,39,.08);
+      --shadow-sm: 0 6px 14px rgba(17,24,39,.06);
+      --radius: 14px;
+    }
+
+    html,body{height:100%;}
+    body{
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+    }
+
+    .topbar{
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand{
+      display:flex; align-items:center; gap:.6rem;
+      text-decoration:none;
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .brand-mark{
+      width:34px; height:34px; border-radius: 999px;
+      display:grid; place-items:center;
+      background: var(--brand);
+      color:#fff;
+      font-weight: 900;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .navbar .nav-link{
+      color: #2b3645 !important;
+      font-weight: 600;
+      font-size: .95rem;
+    }
+    .navbar .nav-link:hover{color: var(--brand) !important;}
+    .dropdown-menu{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-brand{
+      background: var(--brand);
+      border: 1px solid var(--brand);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 12px;
+    }
+    .btn-brand:hover{
+      background: var(--brand-2);
+      border-color: var(--brand-2);
+      color: #fff;
+    }
+    .btn-outline-brand{
+      border: 1px solid var(--brand);
+      color: var(--brand);
+      font-weight: 700;
+      border-radius: 12px;
+    }
+    .btn-outline-brand:hover{
+      background: var(--brand);
+      color:#fff;
+    }
+
+    main{min-height: calc(100vh - 140px);}
+    section.view{display:none; padding: 1.75rem 0;}
+    section.view.active{display:block;}
+
+    .hero-wrap{
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.75rem;
+    }
+    .hero-title{
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1.1;
+    }
+    .hero-sub{
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .card-clean{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .card-clean .card-header{
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-weight: 800;
+    }
+
+    .feature{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      padding: 1rem;
+      height: 100%;
+      box-shadow: var(--shadow-sm);
+    }
+    .feature .icon{
+      width: 42px; height: 42px;
+      border-radius: 999px;
+      display:grid; place-items:center;
+      background: var(--bg-soft);
+      color: var(--brand);
+      border: 1px solid var(--border);
+    }
+
+    .stats-strip{
+      background: var(--bg-soft);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 0;
+    }
+    .stat{display:flex; gap: .85rem; align-items:center;}
+    .stat .bubble{
+      width: 54px; height:54px; border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      display:grid; place-items:center;
+      color: var(--brand);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat .num{font-weight: 900; font-size: 1.55rem; line-height: 1;}
+    .stat .lbl{color: var(--muted); font-weight: 600; font-size: .95rem;}
+
+    .form-control, .form-select{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .form-control:focus, .form-select:focus{
+      border-color: rgba(11,102,195,.45);
+      box-shadow: 0 0 0 .25rem rgba(11,102,195,.12);
+    }
+
+    .muted{color: var(--muted);}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .divider{height:1px; background: var(--border); margin: 1rem 0;}
+    .badge-soft{
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      color: #334155;
+      font-weight: 700;
+    }
+
+    /* IQ progress / header */
+    .iq-header{
+      display:flex; gap: .75rem; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .iq-meta{
+      display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;
+    }
+    .iq-type-chip{
+      display:inline-flex; gap:.4rem; align-items:center;
+      padding: .35rem .55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+      font-weight: 800;
+      font-size: .85rem;
+      color: #334155;
+    }
+    .iq-option{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem .75rem;
+      display:flex;
+      align-items:flex-start;
+      gap: .6rem;
+      background: #fff;
+    }
+    .iq-option:hover{border-color: rgba(11,102,195,.35);}
+    .iq-option .form-check-input{margin-top:.35rem;}
+
+    /* Chat */
+    .chat-wrap{
+      height: 440px;
+      overflow:auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .bubble-msg{
+      max-width: 88%;
+      padding: .65rem .85rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      white-space: pre-wrap;
+    }
+    .bubble-msg.user{
+      margin-left:auto;
+      border-color: rgba(11,102,195,.25);
+      background: rgba(11,102,195,.06);
+    }
+
+    footer{
+      background: var(--bg-soft);
+      border-top: 1px solid var(--border);
+    }
+    footer a{color: var(--brand); text-decoration:none; font-weight: 700;}
+    footer a:hover{text-decoration: underline;}
+
+    #toastArea{
+      position: fixed;
+      top: 82px;
+      right: 16px;
+      z-index: 9999;
+      width: min(360px, calc(100vw - 32px));
+    }
+
+    @media (max-width: 991px){
+      .chat-wrap{height: 380px;}
+      .hero-wrap{padding: 1.2rem;}
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toastArea"></div>
+
+  <header class="topbar sticky-top">
+    <nav class="navbar navbar-expand-lg py-2">
+      <div class="container">
+        <a class="brand" href="#" data-route="landing" aria-label="CareerCompass AI Home">
+          <span class="brand-mark">iL</span>
+          <span>IntelLearn</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div id="topNav" class="collapse navbar-collapse">
+          <ul class="navbar-nav ms-lg-3 me-auto mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">For Students</a>
+              <ul class="dropdown-menu">
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="questionnaires"><i class="bi bi-ui-checks-grid me-2"></i>Assessments</a></li>
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="results"><i class="bi bi-graph-up-arrow me-2"></i>Results & Profiling</a></li>
+                <li><a class="dropdown-item" href="#" data-route="landing"><i class="bi bi-info-circle me-2"></i>How it works</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Resources</a>
+              <ul class="dropdown-menu">
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="roadmap"><i class="bi bi-map me-2"></i>Career Roadmap</a></li>
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="chatbot"><i class="bi bi-chat-dots me-2"></i>Career Chatbot</a></li>
+                <li class="authOnly"><a class="dropdown-item" href="#" data-route="hackathons"><i class="bi bi-trophy me-2"></i>Hackathons & Contests</a></li>
+              </ul>
+            </li>
+
+            <li class="nav-item authOnly">
+              <a class="nav-link" href="#" data-route="profile">Profile / Settings</a>
+            </li>
+          </ul>
+
+          <form class="d-flex me-lg-3 mb-2 mb-lg-0" role="search" onsubmit="return false;">
+            <div class="input-group">
+              <span class="input-group-text bg-white border" style="border-radius:12px 0 0 12px;"><i class="bi bi-search"></i></span>
+              <input id="globalSearch" class="form-control" type="search" placeholder="Search (roadmap, chatbot, hackathons…)" style="border-radius:0 12px 12px 0;">
+            </div>
+          </form>
+
+          <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-brand px-3 guestOnly" href="#" data-route="register">Get Started</a>
+            <a class="btn btn-outline-brand px-3 guestOnly" href="#" data-route="login">Log In</a>
+
+            <div class="dropdown authOnly">
+              <button class="btn btn-outline-brand dropdown-toggle px-3" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-2"></i><span id="userMenuLabel">User</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="px-3 py-2">
+                  <div class="fw-bold" id="userEmailSmall">—</div>
+                  <div class="muted small">Signed in</div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-route="dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li><a class="dropdown-item" href="#" data-route="profile"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                <li><button class="dropdown-item text-danger" id="btnLogout"><i class="bi bi-box-arrow-right me-2"></i>Logout</button></li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container py-3">
+    <!-- LANDING -->
+    <section id="view-landing" class="view active">
+      <div class="hero-wrap">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-7">
+            <span class="badge badge-soft">Career Guidance Platform • CS/IT Focus</span>
+            <h1 class="hero-title display-6 mt-3 mb-3">
+              Assess aptitude. Understand interests. Get a career roadmap and continuous guidance.
+            </h1>
+            <p class="hero-sub mb-4">
+              IntelLearn is a responsive web application for school and college students to build a clear profile
+              using short assessments, explainable classification, and a Gemini-powered roadmap + chatbot.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-brand px-4 py-2 guestOnly" href="#" data-route="register"><i class="bi bi-rocket-takeoff me-2"></i>Get Started</a>
+              <a class="btn btn-outline-brand px-4 py-2 guestOnly" href="#" data-route="login"><i class="bi bi-box-arrow-in-right me-2"></i>Log In</a>
+              <a class="btn btn-outline-brand px-4 py-2 authOnly" href="#" data-route="dashboard"><i class="bi bi-speedometer2 me-2"></i>Open Dashboard</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="feature">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="icon"><i class="bi bi-ui-checks-grid"></i></div>
+                    <div>
+                      <div class="fw-bold">Assessments</div>
+                      <div class="muted small">IQ + interest survey</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="icon"><i class="bi bi-diagram-3"></i></div>
+                    <div>
+                      <div class="fw-bold">Explainable Profiling</div>
+                      <div class="muted small">Decision Tree + NN demo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="icon"><i class="bi bi-stars"></i></div>
+                    <div>
+                      <div class="fw-bold">Personalized Guidance</div>
+                      <div class="muted small">Gemini roadmaps + chatbot</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="col-lg-5">
+            <div class="card card-clean">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span>What you get</span>
+                <span class="badge text-bg-light border">Professional Output</span>
+              </div>
+              <div class="card-body">
+                <ul class="mb-3">
+                  <li class="mb-2"><strong>Profile scorecard</strong> (IQ + domain interests)</li>
+                  <li class="mb-2"><strong>Track recommendation</strong> with clear “why” path</li>
+                  <li class="mb-2"><strong>Roadmap</strong> with milestones, projects, free resources</li>
+                  <li class="mb-2"><strong>Hackathons tab</strong> with search + bookmarks</li>
+                </ul>
+                <div class="d-grid gap-2">
+                  <a class="btn btn-brand authOnly" href="#" data-route="questionnaires"><i class="bi bi-ui-checks-grid me-2"></i>Start Assessments</a>
+                  <a class="btn btn-outline-brand authOnly" href="#" data-route="hackathons"><i class="bi bi-trophy me-2"></i>Explore Opportunities</a>
+                  <a class="btn btn-outline-brand guestOnly" href="#" data-route="register"><i class="bi bi-person-plus me-2"></i>Create Account</a>
+                </div>
+                <p class="muted small mt-3 mb-0">
+                  Disclaimer: Educational guidance. Verify opportunities and resources independently.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="stats-strip mt-4">
+        <div class="container">
+          <div class="row g-3 text-center text-md-start">
+            <div class="col-md-3">
+              <div class="stat justify-content-center justify-content-md-start">
+                <div class="bubble"><i class="bi bi-people"></i></div>
+                <div>
+                  <div class="num">3M+</div>
+                  <div class="lbl">Students supported</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat justify-content-center justify-content-md-start">
+                <div class="bubble"><i class="bi bi-mortarboard"></i></div>
+                <div>
+                  <div class="num">70K+</div>
+                  <div class="lbl">Educators engaged</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat justify-content-center justify-content-md-start">
+                <div class="bubble"><i class="bi bi-building"></i></div>
+                <div>
+                  <div class="num">250+</div>
+                  <div class="lbl">Partner institutions</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat justify-content-center justify-content-md-start">
+                <div class="bubble"><i class="bi bi-patch-check"></i></div>
+                <div>
+                  <div class="num">50+</div>
+                  <div class="lbl">University links</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="muted small mt-3 mb-0">
+            Note: Stats above are placeholders for UI demonstration.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTER -->
+    <section id="view-register" class="view">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+          <div class="card card-clean">
+            <div class="card-header">Create Account</div>
+            <div class="card-body">
+              <p class="muted mb-3">Register to access assessments, results, roadmaps, and bookmarks.</p>
+
+              <form id="formRegister" novalidate>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Full name</label>
+                    <input class="form-control" id="regName" required>
+                    <div class="invalid-feedback">Please enter your name.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Engineering College Name</label>
+                    <select class="form-select" id="regOrg" required>
+                      <option value="" selected disabled>Select engineering college</option>
+                      <option>Sandip University</option>
+                      <option>R.H. Sapat College of Engineering</option>
+                      <option>Matoshri College of Engineering and Research Centre</option>
+                      <option>K. K. Wagh Institute of Engineering Education and Research</option>
+                      <option>MET Bhujbal Knowledge City</option>
+                      <option>Guru Gobind Singh College of Engineering and Research Centre</option>
+                      <option>MVPS’s Karmaveer Adv. Baburao Ganpatrao Thakare College of Engineering</option>
+                      <option>College of Engineering Pune (COEP)</option>
+                      <option>MIT World Peace University</option>
+                      <option>Vishwakarma Institute of Technology</option>
+                      <option>Pune Institute of Computer Technology</option>
+                      <option>Symbiosis Institute of Technology</option>
+                    </select>
+                    <div class="invalid-feedback">Please select your engineering college.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" id="regEmail" type="email" required>
+                    <div class="invalid-feedback">Only @gmail.com email format is allowed.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Password</label>
+                    <input class="form-control" id="regPass" type="password" minlength="6" required>
+                    <div class="invalid-feedback">Minimum 6 characters.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Level</label>
+                    <select class="form-select" id="regLevel" required>
+                      <option value="" selected disabled>Select</option>
+                      <option>School (Senior Secondary)</option>
+                      <option>Diploma</option>
+                      <option>Undergraduate</option>
+                      <option>Postgraduate</option>
+                      <option>Self-learner</option>
+                    </select>
+                    <div class="invalid-feedback">Select your level.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Stream</label>
+                    <select class="form-select" id="regStream" required>
+                      <option value="" selected disabled>Select</option>
+                      <option>Computer Science</option>
+                      <option>Information Technology</option>
+                      <option>Other (interested in CS/IT)</option>
+                    </select>
+                    <div class="invalid-feedback">Select your stream.</div>
+                  </div>
+
+                  <div class="col-12">
+                    <button id="btnRegister" class="btn btn-brand w-100" type="submit">
+                      Create account <span class="spinner-border spinner-border-sm ms-2 d-none" id="regSpin"></span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="divider"></div>
+              <div class="muted">
+                Already have an account? <a href="#" data-route="login">Log in</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOGIN -->
+    <section id="view-login" class="view">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+          <div class="card card-clean">
+            <div class="card-header">Log In</div>
+            <div class="card-body">
+              <p class="muted mb-3">Access your profile, assessments, and saved guidance.</p>
+
+              <form id="formLogin" novalidate>
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" id="loginEmail" type="email" required>
+                    <div class="invalid-feedback">Enter a valid email.</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Password</label>
+                    <input class="form-control" id="loginPass" type="password" minlength="6" required>
+                    <div class="invalid-feedback">Enter your password.</div>
+                  </div>
+                  <div class="col-12">
+                    <button id="btnLogin" class="btn btn-brand w-100" type="submit">
+                      Log in <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpin"></span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="divider"></div>
+              <div class="muted">
+                New user? <a href="#" data-route="register">Create an account</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Dashboard</span>
+              <span class="badge badge-soft">Profile Snapshot</span>
+            </div>
+            <div class="card-body">
+              <p class="muted">
+                Your latest assessment and recommendation overview. Take assessments to update your profile.
+              </p>
+
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="feature">
+                    <div class="fw-bold">IQ Score</div>
+                    <div class="display-6 fw-bold mt-2" id="dashIq">—</div>
+                    <div class="muted small" id="dashIqHint">Take the IQ quiz to compute.</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="feature">
+                    <div class="fw-bold">Top Interest</div>
+                    <div class="h4 fw-bold mt-2" id="dashTopDomain">—</div>
+                    <div class="muted small" id="dashTopDomainHint">Complete interest survey.</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="feature">
+                    <div class="fw-bold">Recommended Track</div>
+                    <div class="h5 fw-bold mt-2" id="dashTrack">—</div>
+                    <div class="muted small" id="dashTrackHint">Results appear after profiling.</div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="feature">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="fw-bold">Interpretability & confidence</div>
+                      <span class="badge badge-soft" id="dashConfidenceChip">Confidence: —</span>
+                    </div>
+                    <div class="muted mt-2" id="dashExplain">
+                      Complete both assessments to generate your profile and guidance.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-brand" href="#" data-route="questionnaires"><i class="bi bi-ui-checks-grid me-2"></i>Take Assessments</a>
+                <a class="btn btn-outline-brand" href="#" data-route="results"><i class="bi bi-graph-up-arrow me-2"></i>View Results</a>
+                <a class="btn btn-outline-brand" href="#" data-route="roadmap"><i class="bi bi-map me-2"></i>Generate Roadmap</a>
+                <a class="btn btn-outline-brand" href="#" data-route="hackathons"><i class="bi bi-trophy me-2"></i>Hackathons</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>System Status</span>
+              <span class="badge text-bg-light border">Firebase</span>
+            </div>
+            <div class="card-body">
+              <div class="muted small">
+                <div><span class="fw-bold">UID:</span> <span class="mono" id="dashUid">—</span></div>
+                <div class="mt-1"><span class="fw-bold">Last saved:</span> <span id="dashLastSaved">—</span></div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="feature">
+                <div class="fw-bold mb-1">Database write test</div>
+                <div class="muted small" id="healthCheck">Waiting for login…</div>
+                <button class="btn btn-outline-brand w-100 mt-3" id="btnHealthPing">
+                  <i class="bi bi-heart-pulse me-2"></i>Test DB write
+                </button>
+              </div>
+
+              <div class="divider"></div>
+              <p class="muted small mb-0">
+                If DB write fails, verify <span class="mono">databaseURL</span> and Realtime DB rules.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUESTIONNAIRES -->
+    <section id="view-questionnaires" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span>IQ Test (Dynamic • 10 Questions)</span>
+              <button class="btn btn-outline-brand btn-sm" id="btnNewIQ">
+                <i class="bi bi-shuffle me-1"></i>New set
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="iq-header mb-3">
+                <div class="iq-meta">
+                  <span class="badge badge-soft">Randomized question set</span>
+                  <span class="badge badge-soft">Options shuffled</span>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold" id="iqProgressText">Answered: 0/10</div>
+                  <div class="muted small">Progress updates as you select options</div>
+                </div>
+              </div>
+
+              <div class="progress" role="progressbar" aria-label="IQ progress">
+                <div id="iqProgressBar" class="progress-bar" style="width: 0%"></div>
+              </div>
+
+              <div class="divider"></div>
+              <form id="formIQ"></form>
+              <div class="divider"></div>
+              <button class="btn btn-brand w-100" id="btnSubmitIQ">
+                Submit IQ Test
+              </button>
+
+              <p class="muted small mt-3 mb-0">
+                For fairness, the selected question IDs + option order are saved with each attempt.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card card-clean">
+            <div class="card-header">Interest Survey (20 Items)</div>
+            <div class="card-body">
+              <p class="muted">Rate each statement from 1 (low) to 5 (high). This builds your domain interest vector.</p>
+              <div class="divider"></div>
+              <form id="formInterest"></form>
+              <div class="divider"></div>
+              <button class="btn btn-brand w-100" id="btnSubmitInterest">
+                Submit Interest Survey
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="feature">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div>
+                <div class="fw-bold">Next step</div>
+                <div class="muted small">After submitting both assessments, the platform computes Decision Tree + Neural Net demo and blends them for a recommendation.</div>
+              </div>
+              <a class="btn btn-outline-brand" href="#" data-route="results"><i class="bi bi-graph-up-arrow me-2"></i>Go to Results</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="view-results" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="card card-clean">
+            <div class="card-header">Results & Profiling</div>
+            <div class="card-body">
+              <p class="muted">
+                This section shows IQ score, interest vector, classification, and explanation (decision path + probabilities).
+              </p>
+
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="feature">
+                    <div class="fw-bold">IQ Score</div>
+                    <div class="display-6 fw-bold mt-2" id="resIq">—</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="feature">
+                    <div class="fw-bold">Confidence</div>
+                    <div class="display-6 fw-bold mt-2" id="resConf">—</div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="feature">
+                    <div class="fw-bold">Top Domain</div>
+                    <div class="h4 fw-bold mt-2" id="resTopDomain">—</div>
+                    <div class="muted small" id="resTopDomainScore">—</div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="feature">
+                    <div class="fw-bold">Recommended Track (Blended)</div>
+                    <div class="h5 fw-bold mt-2" id="resTrack">—</div>
+                    <div class="muted small" id="resTrackHint">—</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="feature">
+                <div class="fw-bold">Decision Tree path (“Why”)</div>
+                <div class="muted mt-2" id="resDecisionPath">—</div>
+              </div>
+
+              <div class="divider"></div>
+
+              <button class="btn btn-outline-brand w-100" id="btnRecompute">
+                Recompute Profiling (NN Demo)
+              </button>
+              <div class="muted small mt-2">
+                Recomputes the in-browser Neural Net demo and updates blended scores in Firebase.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card card-clean">
+            <div class="card-header">Charts</div>
+            <div class="card-body">
+              <div class="feature mb-3">
+                <div class="fw-bold">Interest Vector (0–100)</div>
+                <div class="muted small">Per domain based on the survey responses.</div>
+                <div class="divider"></div>
+                <canvas id="chartInterests" height="140"></canvas>
+              </div>
+
+              <div class="feature">
+                <div class="fw-bold">Track Probabilities</div>
+                <div class="muted small">Decision Tree vs Neural Net demo vs blended distribution.</div>
+                <div class="divider"></div>
+                <canvas id="chartTracks" height="140"></canvas>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="feature">
+                <div class="fw-bold">Interpretability Summary</div>
+                <div class="muted mt-2" id="resExplainability">—</div>
+              </div>
+
+              <div class="divider"></div>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-brand" href="#" data-route="roadmap"><i class="bi bi-map me-2"></i>Generate Roadmap</a>
+                <a class="btn btn-outline-brand" href="#" data-route="chatbot"><i class="bi bi-chat-dots me-2"></i>Ask Chatbot</a>
+                <a class="btn btn-outline-brand" href="#" data-route="questionnaires"><i class="bi bi-ui-checks-grid me-2"></i>Edit Assessments</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="view-roadmap" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="card card-clean">
+            <div class="card-header">Gemini Roadmap Generator</div>
+            <div class="card-body">
+              <p class="muted">Generates a structured 3–6 month roadmap using your latest profile as context.</p>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Target domain (optional override)</label>
+                  <select class="form-select" id="rmTarget">
+                    <option value="">Auto (use top interest)</option>
+                    <option>Software Engineering</option>
+                    <option>Web Development</option>
+                    <option>AI/ML</option>
+                    <option>Data Science</option>
+                    <option>Cybersecurity</option>
+                    <option>Cloud/DevOps</option>
+                    <option>Mobile Development</option>
+                    <option>UI/UX</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Skill level</label>
+                  <select class="form-select" id="rmLevel">
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Hours/week</label>
+                  <select class="form-select" id="rmHours">
+                    <option>4</option>
+                    <option selected>6</option>
+                    <option>8</option>
+                    <option>10</option>
+                    <option>12</option>
+                    <option>15</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Constraints (optional)</label>
+                  <input class="form-control" id="rmConstraints" placeholder="e.g., only free resources, 1 hour/day, low-end laptop">
+                </div>
+                <div class="col-12">
+                  <button class="btn btn-brand w-100" id="btnGenerateRoadmap">
+                    Generate Roadmap
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="rmSpin"></span>
+                  </button>
+                  <div class="muted small mt-2">
+                    Saved to Firebase: <span class="mono">users/{uid}/roadmaps/{timestamp}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <div class="feature">
+                <div class="fw-bold">Best practice</div>
+                <div class="muted small mt-1">
+                  Provide realistic constraints (time, device, deadlines). The roadmap will be much better.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Roadmap Output</span>
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-brand btn-sm" id="btnLoadLastRoadmap"><i class="bi bi-clock-history me-1"></i>Load last</button>
+                <button class="btn btn-outline-brand btn-sm" id="btnCopyRoadmap"><i class="bi bi-clipboard me-1"></i>Copy</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="roadmapOutput" class="feature" style="min-height: 360px;">
+                <div class="muted">No roadmap yet. Complete assessments and generate one.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CHATBOT -->
+    <section id="view-chatbot" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card card-clean">
+            <div class="card-header">Career Chatbot</div>
+            <div class="card-body">
+              <p class="muted">Ask career questions. Gemini responds using your latest profile context.</p>
+
+              <div class="feature">
+                <div class="fw-bold mb-2">Quick prompts</div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-outline-brand btn-sm" data-chip="Best domain for me based on my profile?">Best domain for me?</button>
+                  <button class="btn btn-outline-brand btn-sm" data-chip="Give me 10 project ideas aligned to my top interest.">Project ideas</button>
+                  <button class="btn btn-outline-brand btn-sm" data-chip="How do I start cybersecurity legally with free resources and projects?">Start cybersecurity</button>
+                  <button class="btn btn-outline-brand btn-sm" data-chip="Create a weekly study plan for the next 4 weeks based on my profile.">4-week plan</button>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <button class="btn btn-outline-brand w-100" id="btnLoadChat"><i class="bi bi-cloud-download me-2"></i>Load saved chat (today)</button>
+              <button class="btn btn-outline-brand w-100 mt-2" id="btnClearChat"><i class="bi bi-trash3 me-2"></i>Clear chat (local)</button>
+
+              <p class="muted small mt-3 mb-0">
+                Chat saved to Firebase: <span class="mono">users/{uid}/chats/{dateKey}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Conversation</span>
+              <span class="badge badge-soft" id="chatStatus">Idle</span>
+            </div>
+            <div class="card-body">
+              <div id="chatWrap" class="chat-wrap"></div>
+
+              <div class="divider"></div>
+
+              <div class="input-group">
+                <input class="form-control" id="chatInput" placeholder="Type your question…" />
+                <button class="btn btn-brand" id="btnSendChat">
+                  Send
+                  <span class="spinner-border spinner-border-sm ms-2 d-none" id="chatSpin"></span>
+                </button>
+              </div>
+              <p class="muted small mt-2 mb-0">
+                Tip: Ask for steps + projects + free resources.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- HACKATHONS -->
+    <section id="view-hackathons" class="view auth-guard">
+      <div class="card card-clean">
+        <div class="card-header">Hackathons & Coding Competitions</div>
+        <div class="card-body">
+          <p class="muted">Search opportunities, apply filters, and bookmark items in Firebase.</p>
+
+          <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label">Search</label>
+              <input class="form-control" id="hackSearch" placeholder="Search by name, organizer, tags...">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Mode</label>
+              <select class="form-select" id="hackMode">
+                <option value="">All</option>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Month</label>
+              <select class="form-select" id="hackMonth">
+                <option value="">All</option>
+                <option>Jan</option><option>Feb</option><option>Mar</option><option>Apr</option><option>May</option><option>Jun</option>
+                <option>Jul</option><option>Aug</option><option>Sep</option><option>Oct</option><option>Nov</option><option>Dec</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Tag</label>
+              <select class="form-select" id="hackTag">
+                <option value="">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row g-3" id="hackList"></div>
+
+          <div class="divider"></div>
+
+          <div class="feature">
+            <div class="fw-bold">Bookmarks</div>
+            <div class="muted small">Saved to Firebase: <span class="mono">users/{uid}/bookmarks/hackathons/{id}</span></div>
+            <button class="btn btn-outline-brand mt-3" id="btnLoadBookmarks"><i class="bi bi-bookmark-heart me-2"></i>Load My Bookmarks</button>
+            <div class="mt-3" id="bookmarkArea"></div>
+          </div>
+
+          <p class="muted small mt-3 mb-0">
+            Note: dataset is curated for demo; verify dates and details on the official pages.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="view-profile" class="view auth-guard">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="card card-clean">
+            <div class="card-header">Profile / Settings</div>
+            <div class="card-body">
+              <div class="feature">
+                <div class="fw-bold mb-2">Account</div>
+                <div class="small">
+                  <div><span class="muted">Email:</span> <span id="profileEmail">—</span></div>
+                  <div class="mt-1"><span class="muted">Name:</span> <span id="profileName">—</span></div>
+                  <div class="mt-1"><span class="muted">Institute:</span> <span id="profileOrg">—</span></div>
+                  <div class="mt-1"><span class="muted">Level:</span> <span id="profileLevel">—</span></div>
+                  <div class="mt-1"><span class="muted">Stream:</span> <span id="profileStream">—</span></div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="feature">
+                <div class="fw-bold mb-2">Data controls</div>
+                <button class="btn btn-outline-brand w-100" id="btnResetQuestionnaires">
+                  Reset profile + responses (Firebase)
+                </button>
+                <button class="btn btn-outline-brand w-100 mt-2" id="btnClearLocal">
+                  Clear local cache (browser)
+                </button>
+                <p class="muted small mt-2 mb-0">
+                  Reset removes the paths used by this app: <span class="mono">profile/latest</span> and <span class="mono">responses</span>.
+                </p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card card-clean">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Latest Profile (from Firebase)</span>
+              <button class="btn btn-outline-brand btn-sm" id="btnReloadProfile"><i class="bi bi-arrow-repeat me-1"></i>Reload</button>
+            </div>
+            <div class="card-body">
+              <pre class="feature small mono mb-0" id="profileJson" style="min-height: 360px; overflow:auto;">—</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-4">
+    <div class="container">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="fw-bold">IntelLearn</div>
+          <div class="muted small mt-2">
+            A college project: profiling + guidance platform for CS/IT students using assessments, explainable models and Gemini.
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="fw-bold">Quick links</div>
+          <div class="d-flex flex-column gap-1 mt-2 small">
+            <a href="#" data-route="questionnaires">Assessments</a>
+            <a href="#" data-route="results">Results</a>
+            <a href="#" data-route="roadmap">Roadmap</a>
+            <a href="#" data-route="hackathons">Hackathons</a>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="fw-bold">Disclaimer</div>
+          <div class="muted small mt-2">
+            This platform provides educational guidance. Always verify opportunities and follow legal/ethical practices.
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-outline-brand btn-sm" href="https://github.com/AkashPatl28" aria-label="GitHub"><i class="bi bi-github"></i></a>
+            <a class="btn btn-outline-brand btn-sm" href="https://www.linkedin.com/in/akash-patil-ap2842004/" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a class="btn btn-outline-brand btn-sm" href="#" aria-label="Website"><i class="bi bi-globe2"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="small muted">© <span id="yearNow"></span> IntelLearn • Built with Bootstrap + Firebase + Gemini</div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    /******************************************************************
+     * CONFIG (YOU PROVIDED THESE)
+     ******************************************************************/
+    const firebaseConfig = {
+      apiKey: "AIzaSyChaVeoTJ7lz_G4NhMu8RQYpGVr2akq2l4",
+      authDomain: "car-rental-web-9d105.firebaseapp.com",
+      databaseURL: "https://car-rental-web-9d105-default-rtdb.firebaseio.com",
+      projectId: "car-rental-web-9d105",
+      storageBucket: "car-rental-web-9d105.firebasestorage.app",
+      messagingSenderId: "622363581156",
+      appId: "1:622363581156:web:e8bf29dc6b042978a46af1",
+      measurementId: "G-CLJ05HDRY1"
+    };
+
+    const GEMINI_API_KEY = "AIzaSyBDcA36gKpZALmzsVO-haear7WF_Ct_7ME";
+    const GEMINI_MODEL = "gemini-2.5-flash";
+    const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+    /******************************************************************
+     * APP STATE
+     ******************************************************************/
+    let app = null, auth = null, db = null;
+    let currentUser = null;
+    let latestProfile = null;
+    let chatMessages = [];
+
+    const DOMAIN_META = [
+      { key: "software_engineering", label: "Software Engineering" },
+      { key: "web_development", label: "Web Development" },
+      { key: "ai_ml", label: "AI/ML" },
+      { key: "data_science", label: "Data Science" },
+      { key: "cybersecurity", label: "Cybersecurity" },
+      { key: "cloud_devops", label: "Cloud/DevOps" },
+      { key: "mobile_development", label: "Mobile Development" },
+      { key: "ui_ux", label: "UI/UX" }
+    ];
+
+    const DOMAINS = DOMAIN_META.map(d => d.key);
+    const DOMAIN_LABELS = Object.fromEntries(DOMAIN_META.map(d => [d.key, d.label]));
+
+    function domainLabel(key){
+      return DOMAIN_LABELS[key] || key || "—";
+    }
+
+    const TRACKS = [
+      "Software Engineer",
+      "Full-Stack Web Developer",
+      "AI/ML Engineer",
+      "Data Scientist",
+      "Cybersecurity Analyst",
+      "Cloud/DevOps Engineer",
+      "Mobile App Developer",
+      "UI/UX Designer"
+    ];
+
+    let charts = { interests: null, tracks: null };
+
+    /******************************************************************
+     * IQ DYNAMIC BANK + ATTEMPT STATE
+     * - Each attempt picks 10 random questions from a larger bank
+     * - Each question's options are shuffled per attempt
+     * - We persist the attempt in localStorage (so it doesn't reshuffle mid-test)
+     * - When you submit, we save selectedQuestionIds + optionOrder + answers in Firebase
+     ******************************************************************/
+    const IQ_TEST_SIZE = 10;
+
+    const IQ_TYPE_META = {
+      math:    { label:"Math",    icon:"bi-calculator" },
+      logic:   { label:"Logic",   icon:"bi-lightbulb" },
+      pattern: { label:"Pattern", icon:"bi-grid-3x3-gap" },
+      verbal:  { label:"Verbal",  icon:"bi-chat-left-text" }
+    };
+
+    // NOTE: The first 10 keep your original question wording (as requested earlier),
+    // but now the system can randomly pick from a larger bank.
+    const IQ_BANK = [
+      // Original set (same wording)
+      { id:"iq01", type:"pattern", difficulty:"easy", q:"Which number completes the series: 2, 4, 8, 16, ?", options:["18","24","32","34"], answerIndex:2 },
+      { id:"iq02", type:"logic",   difficulty:"easy", q:"If ALL BLOOPS are RAZZIES and ALL RAZZIES are LAZZIES, then ALL BLOOPS are definitely:", options:["LAZZIES","NOT LAZZIES","SOMETIMES LAZZIES","UNKNOWN"], answerIndex:0 },
+      { id:"iq03", type:"logic",   difficulty:"easy", q:"Find the odd one out:", options:["Triangle","Square","Circle","Rectangle"], answerIndex:2 },
+      { id:"iq04", type:"math",    difficulty:"easy", q:"If 3 machines make 3 items in 3 minutes, how many minutes for 6 machines to make 6 items?", options:["1","3","6","9"], answerIndex:1 },
+      { id:"iq05", type:"verbal",  difficulty:"easy", q:"Which word is the closest opposite of 'Expand'?", options:["Grow","Increase","Contract","Stretch"], answerIndex:2 },
+      { id:"iq06", type:"verbal",  difficulty:"easy", q:"If you rearrange the letters 'CIFAIPC' you get the name of a:", options:["City","Ocean","Animal","Planet"], answerIndex:1 },
+      { id:"iq07", type:"logic",   difficulty:"easy", q:"A is to Z as 1 is to:", options:["26","25","0","27"], answerIndex:0 },
+      { id:"iq08", type:"pattern", difficulty:"easy", q:"Which number completes the pattern: 1, 4, 9, 16, ?", options:["20","24","25","36"], answerIndex:2 },
+      { id:"iq09", type:"math",    difficulty:"easy", q:"If 5 + 3 × 2 = ?", options:["16","11","13","10"], answerIndex:1 },
+      { id:"iq10", type:"logic",   difficulty:"easy", q:"Which figure has the most sides?", options:["Hexagon","Heptagon","Octagon","Nonagon"], answerIndex:3 },
+
+      // Extra bank (for randomness)
+      { id:"iq11", type:"pattern", difficulty:"easy", q:"Which number completes the series: 3, 6, 12, 24, ?", options:["27","36","48","60"], answerIndex:2 },
+      { id:"iq12", type:"math",    difficulty:"easy", q:"What is 15% of 200?", options:["15","25","30","35"], answerIndex:2 },
+      { id:"iq13", type:"logic",   difficulty:"easy", q:"If today is Tuesday, what day will it be after 10 days?", options:["Friday","Saturday","Sunday","Monday"], answerIndex:1 },
+      { id:"iq14", type:"verbal",  difficulty:"easy", q:"Choose the synonym of 'Brief':", options:["Short","Late","Weak","Wide"], answerIndex:0 },
+      { id:"iq15", type:"pattern", difficulty:"easy", q:"Which number completes: 5, 10, 20, 40, ?", options:["45","60","70","80"], answerIndex:3 },
+      { id:"iq16", type:"logic",   difficulty:"easy", q:"All roses are flowers. Some flowers fade quickly. Therefore:", options:["All roses fade quickly","Some roses may fade quickly","No roses fade quickly","Roses are not flowers"], answerIndex:1 },
+
+      { id:"iq17", type:"math",    difficulty:"medium", q:"A shop gives 20% discount on ₹1500. Final price is:", options:["₹1100","₹1200","₹1300","₹1400"], answerIndex:1 },
+      { id:"iq18", type:"pattern", difficulty:"medium", q:"Find the missing number: 2, 3, 5, 8, 13, ?", options:["18","19","20","21"], answerIndex:1 },
+      { id:"iq19", type:"logic",   difficulty:"medium", q:"If some cats are dogs and all dogs are pets, then:", options:["All cats are pets","Some cats are pets","No cats are pets","All pets are cats"], answerIndex:1 },
+      { id:"iq20", type:"verbal",  difficulty:"medium", q:"Choose the best antonym of 'Transparent':", options:["Clear","Opaque","Bright","Thin"], answerIndex:1 },
+
+      { id:"iq21", type:"math",    difficulty:"medium", q:"If x + 5 = 17, then x = ?", options:["10","11","12","13"], answerIndex:2 },
+      { id:"iq22", type:"logic",   difficulty:"medium", q:"In a race, you pass the person in 2nd place. What place are you in?", options:["1st","2nd","3rd","4th"], answerIndex:1 },
+      { id:"iq23", type:"pattern", difficulty:"medium", q:"Which completes: 1, 2, 6, 24, ?", options:["48","96","120","144"], answerIndex:2 },
+      { id:"iq24", type:"verbal",  difficulty:"medium", q:"Choose the word that does NOT belong:", options:["Compile","Execute","Debug","Illustrate"], answerIndex:3 },
+
+      { id:"iq25", type:"logic",   difficulty:"hard", q:"If A implies B, and B is false, what can you conclude about A?", options:["A is true","A is false","A is unknown","B is true"], answerIndex:1 },
+      { id:"iq26", type:"math",    difficulty:"hard", q:"A train covers 120 km in 2 hours. Speed is:", options:["40 km/h","50 km/h","60 km/h","70 km/h"], answerIndex:2 },
+      { id:"iq27", type:"pattern", difficulty:"hard", q:"Find the missing term: AZ, BY, CX, DW, ?", options:["EV","EU","EX","FV"], answerIndex:0 },
+      { id:"iq28", type:"logic",   difficulty:"hard", q:"If every A is B and no B is C, then:", options:["No A is C","Some A are C","All C are A","All A are C"], answerIndex:0 },
+      { id:"iq29", type:"verbal",  difficulty:"hard", q:"Choose the closest meaning of 'Pragmatic':", options:["Idealistic","Practical","Random","Emotional"], answerIndex:1 },
+      { id:"iq30", type:"math",    difficulty:"hard", q:"If 2^5 = 32, then 2^6 = ?", options:["48","56","64","96"], answerIndex:2 }
+    ];
+
+    // In-memory attempt (built from bank)
+    // Structure:
+    // {
+    //   createdAt, seedId, questions: [
+    //     { id, type, difficulty, q, optionsShuffled: [..], correctIndexAfterShuffle, originalAnswerIndex, optionOrder: [originalIdx...]}
+    //   ]
+    // }
+    let iqAttempt = null;
+
+    function attemptStorageKey(){
+      return currentUser ? `cc_iqAttempt_${currentUser.uid}` : `cc_iqAttempt_guest`;
+    }
+
+    function safeJsonParse(s){ try { return JSON.parse(s); } catch { return null; } }
+
+    function shuffleWithOrder(arr){
+      const indexed = arr.map((v,i)=>({v,i}));
+      for(let i=indexed.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+      }
+      return {
+        values: indexed.map(x=>x.v),
+        order: indexed.map(x=>x.i) // original index order in shuffled sequence
+      };
+    }
+
+    function pickRandomUnique(list, n){
+      const copy = [...list];
+      for(let i=copy.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, n);
+    }
+
+    function createNewIqAttempt(){
+      const selected = pickRandomUnique(IQ_BANK, IQ_TEST_SIZE);
+      const questions = selected.map(q => {
+        const sh = shuffleWithOrder(q.options);
+        const correctIndexAfterShuffle = sh.order.indexOf(q.answerIndex);
+        return {
+          id: q.id,
+          type: q.type,
+          difficulty: q.difficulty,
+          q: q.q,
+          optionsShuffled: sh.values,
+          optionOrder: sh.order,               // how options moved
+          originalAnswerIndex: q.answerIndex,  // for audit
+          correctIndexAfterShuffle
+        };
+      });
+
+      iqAttempt = {
+        createdAt: new Date().toISOString(),
+        seedId: `set_${Date.now()}`, // not cryptographic; just an identifier
+        size: IQ_TEST_SIZE,
+        questions
+      };
+
+      localStorage.setItem(attemptStorageKey(), JSON.stringify(iqAttempt));
+      updateIQProgressUI();
+      renderIQFormFromAttempt();
+    }
+
+    function ensureIqAttempt(){
+      // Keep attempt for up to 2 hours so the student can navigate away and return.
+      const key = attemptStorageKey();
+      const saved = safeJsonParse(localStorage.getItem(key));
+      if(saved?.questions?.length){
+        const ageMs = Date.now() - new Date(saved.createdAt).getTime();
+        if(ageMs < 2*60*60*1000){
+          iqAttempt = saved;
+          updateIQProgressUI();
+          renderIQFormFromAttempt();
+          return;
+        }
+      }
+      createNewIqAttempt();
+    }
+
+    function clearIqAttempt(){
+      iqAttempt = null;
+      localStorage.removeItem(attemptStorageKey());
+    }
+
+    function iqIcon(type){
+      const meta = IQ_TYPE_META[type] || { icon:"bi-question-circle", label:"IQ" };
+      return `<i class="bi ${meta.icon}"></i>`;
+    }
+
+    /******************************************************************
+     * INTEREST SURVEY ITEMS
+     ******************************************************************/
+    const INTEREST_ITEMS = [
+      { domain:"software_engineering", text:"I enjoy solving coding problems and building robust programs." },
+      { domain:"software_engineering", text:"I like learning data structures, algorithms, and clean code practices." },
+
+      { domain:"web_development", text:"I enjoy creating websites or web apps with good UI and performance." },
+      { domain:"web_development", text:"I like working with HTML/CSS/JS and frameworks." },
+
+      { domain:"ai_ml", text:"I am curious about how machines learn patterns from data." },
+      { domain:"ai_ml", text:"I like topics like neural networks, deep learning, and AI tools." },
+
+      { domain:"data_science", text:"I enjoy analyzing datasets and discovering insights." },
+      { domain:"data_science", text:"I like statistics, visualization, and data-driven decision-making." },
+
+      { domain:"cybersecurity", text:"I am interested in how hacking works and how to defend systems." },
+      { domain:"cybersecurity", text:"I enjoy learning about networks, vulnerabilities, and security tools." },
+
+      { domain:"cloud_devops", text:"I like automating deployments and improving system reliability." },
+      { domain:"cloud_devops", text:"I am interested in cloud platforms and infrastructure." },
+
+      { domain:"mobile_development", text:"I want to build Android/iOS apps that people use daily." },
+      { domain:"mobile_development", text:"I enjoy designing app flows and mobile features." },
+
+      { domain:"ui_ux", text:"I like designing interfaces that feel intuitive and beautiful." },
+      { domain:"ui_ux", text:"I enjoy user research, wireframes, and improving user experience." },
+
+      { domain:"software_engineering", text:"I prefer structured engineering and testing over quick hacks." },
+      { domain:"web_development", text:"I enjoy building interactive frontends and APIs." },
+      { domain:"ai_ml", text:"I like experimenting with models and evaluating performance." },
+      { domain:"data_science", text:"I enjoy making dashboards and telling stories with data." }
+    ];
+
+    const HACKATHONS = [
+      { id:"h1",  name:"Global Hack Week: AI", mode:"Online", month:"Mar", date:"Mar (1 week)", organizer:"MLH", eligibility:"Students", link:"https://mlh.io/", tags:["AI","Beginner"] },
+      { id:"h2",  name:"Smart India Hackathon (SIH)", mode:"Hybrid", month:"Aug", date:"Aug–Sep", organizer:"National Program", eligibility:"Students", link:"https://www.sih.gov.in/", tags:["Gov","Team"] },
+      { id:"h3",  name:"Solution Challenge", mode:"Online", month:"Apr", date:"Feb–Apr", organizer:"Student Community", eligibility:"Students", link:"https://developers.google.com/community/gdsc-solution-challenge", tags:["Impact","App"] },
+      { id:"h4",  name:"Devpost Online Hackathons", mode:"Online", month:"Jan", date:"Varies", organizer:"Devpost", eligibility:"Open", link:"https://devpost.com/hackathons", tags:["Web","General"] },
+      { id:"h5",  name:"Kaggle Competitions", mode:"Online", month:"Feb", date:"Monthly", organizer:"Kaggle", eligibility:"Open", link:"https://www.kaggle.com/competitions", tags:["Data","ML"] },
+      { id:"h6",  name:"CTFTime Weekend CTFs", mode:"Online", month:"May", date:"Weekend", organizer:"Community", eligibility:"Open", link:"https://ctftime.org/", tags:["Cybersecurity","CTF"] },
+      { id:"h7",  name:"Open Source Sprint", mode:"Online", month:"Jun", date:"2 weeks", organizer:"Community", eligibility:"Open", link:"https://github.com/", tags:["Open-Source","Git"] },
+      { id:"h8",  name:"Cloud Challenge", mode:"Online", month:"Jul", date:"1 month", organizer:"Cloud Community", eligibility:"Open", link:"https://aws.amazon.com/", tags:["Cloud","DevOps"] },
+      { id:"h9",  name:"Imagine Cup", mode:"Online", month:"Apr", date:"Varies", organizer:"Microsoft", eligibility:"Students", link:"https://imaginecup.microsoft.com/", tags:["Startup","Pitch"] },
+      { id:"h10", name:"Flutter Hackathon", mode:"Online", month:"Sep", date:"Weekend", organizer:"Community", eligibility:"Open", link:"https://flutter.dev/", tags:["Mobile","UI"] },
+      { id:"h11", name:"UI/UX Designathon", mode:"Online", month:"Oct", date:"2–3 days", organizer:"Design Community", eligibility:"Open", link:"https://www.figma.com/community", tags:["UI/UX","Design"] },
+      { id:"h12", name:"Hack the North (example)", mode:"Offline", month:"Sep", date:"Sep", organizer:"University", eligibility:"Students", link:"https://hackthenorth.com/", tags:["In-person","Team"] },
+      { id:"h13", name:"NASA Space Apps Challenge", mode:"Hybrid", month:"Oct", date:"Oct", organizer:"NASA", eligibility:"Open", link:"https://www.spaceappschallenge.org/", tags:["Data","Impact"] },
+      { id:"h14", name:"ETHGlobal Hackathons", mode:"Hybrid", month:"Nov", date:"Varies", organizer:"ETHGlobal", eligibility:"Open", link:"https://ethglobal.com/", tags:["Web3","Build"] },
+      { id:"h15", name:"LeetCode Weekly Contest", mode:"Online", month:"All", date:"Weekly", organizer:"LeetCode", eligibility:"Open", link:"https://leetcode.com/contest/", tags:["DSA","CP"] },
+      { id:"h16", name:"CodeChef Starters", mode:"Online", month:"All", date:"Weekly", organizer:"CodeChef", eligibility:"Open", link:"https://www.codechef.com/contests", tags:["CP","Beginner"] },
+      { id:"h17", name:"HackerRank Skills Certification", mode:"Online", month:"All", date:"Anytime", organizer:"HackerRank", eligibility:"Open", link:"https://www.hackerrank.com/skills-verification", tags:["Assessment","Career"] },
+      { id:"h18", name:"DevOps Automation Challenge", mode:"Online", month:"Dec", date:"2 weeks", organizer:"Community", eligibility:"Open", link:"https://www.cncf.io/", tags:["DevOps","CI/CD"] },
+      { id:"h19", name:"Data Visualization Challenge", mode:"Online", month:"Nov", date:"1 week", organizer:"Community", eligibility:"Open", link:"https://www.tableau.com/", tags:["Data","Viz"] },
+      { id:"h20", name:"Android Appathon", mode:"Online", month:"Aug", date:"Weekend", organizer:"Community", eligibility:"Students/Open", link:"https://developer.android.com/", tags:["Android","Build"] }
+    ];
+
+    /******************************************************************
+     * ROUTING
+     ******************************************************************/
+    const ROUTES = ["landing","register","login","dashboard","questionnaires","results","roadmap","chatbot","hackathons","profile"];
+    function showView(route){
+      if(!ROUTES.includes(route)) route = "landing";
+      const protectedRoutes = ["dashboard","questionnaires","results","roadmap","chatbot","hackathons","profile"];
+      if(protectedRoutes.includes(route) && !currentUser){
+        toast("Please log in to access that section.", "warning");
+        route = "login";
+      }
+
+      document.querySelectorAll("section.view").forEach(v => v.classList.remove("active"));
+      const el = document.getElementById(`view-${route}`);
+      if(el) el.classList.add("active");
+
+      history.replaceState({}, "", `#${route}`);
+
+      if(route === "dashboard") loadDashboard();
+      if(route === "results") loadResults();
+      if(route === "hackathons") renderHackathons();
+      if(route === "profile") loadProfileSettings();
+
+      // IQ attempt should be stable per session; ensure when entering questionnaires
+      if(route === "questionnaires"){
+        ensureIqAttempt();
+      }
+    }
+
+    function initRouting(){
+      document.addEventListener("click", (e)=>{
+        const t = e.target.closest("[data-route]");
+        if(!t) return;
+        e.preventDefault();
+        showView(t.getAttribute("data-route"));
+      });
+      const initial = (location.hash || "#landing").replace("#","");
+      showView(initial);
+    }
+
+    /******************************************************************
+     * UI HELPERS
+     ******************************************************************/
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[s]));
+    }
+
+    function toast(msg, type="info"){
+      const map = { info:"text-bg-primary", success:"text-bg-success", warning:"text-bg-warning", danger:"text-bg-danger" };
+      const klass = map[type] || map.info;
+      const div = document.createElement("div");
+      div.className = `toast align-items-center ${klass} border-0 show mb-2`;
+      div.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${escapeHtml(msg)}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"></button>
+        </div>`;
+      document.getElementById("toastArea").appendChild(div);
+      div.querySelector(".btn-close").onclick = ()=> div.remove();
+      setTimeout(()=>{ if(div && div.parentNode) div.remove(); }, 4200);
+    }
+
+    function setBusy(btn, spinEl, busy){
+      btn.disabled = busy;
+      if(spinEl) spinEl.classList.toggle("d-none", !busy);
+    }
+
+    function nowIso(){ return new Date().toISOString(); }
+    function dateKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+
+    /******************************************************************
+     * FIREBASE INIT + AUTH
+     ******************************************************************/
+    function initFirebase(){
+      app = firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.database();
+
+      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+
+      auth.onAuthStateChanged(async (user)=>{
+        currentUser = user || null;
+        updateAuthUI();
+
+        if(currentUser){
+          // user changed -> load their attempt key (different localStorage key)
+          iqAttempt = null;
+          ensureIqAttempt();
+          await fetchLatestProfile();
+          document.getElementById("healthCheck").textContent = "Signed in. Ready.";
+          showView((location.hash || "#dashboard").replace("#",""));
+        }else{
+          latestProfile = null;
+          iqAttempt = null;
+          document.getElementById("healthCheck").textContent = "Not signed in.";
+          showView((location.hash || "#landing").replace("#",""));
+        }
+      });
+
+      document.getElementById("btnLogout").addEventListener("click", async ()=>{
+        try{
+          await auth.signOut();
+          toast("Logged out.", "success");
+          showView("landing");
+        }catch(err){
+          toast(err.message || "Logout failed.", "danger");
+        }
+      });
+
+      document.getElementById("btnHealthPing").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        try{
+          await db.ref(`users/${currentUser.uid}/health/lastPing`).set({ at: nowIso(), ok: true });
+          toast("DB write OK ✅", "success");
+          document.getElementById("healthCheck").textContent = "DB write successful.";
+        }catch(err){
+          console.error(err);
+          toast("DB write failed. Check rules + databaseURL.", "danger");
+          document.getElementById("healthCheck").textContent = "DB write failed.";
+        }
+      });
+    }
+
+    function updateAuthUI(){
+      document.querySelectorAll(".authOnly").forEach(el => el.style.display = currentUser ? "" : "none");
+      document.querySelectorAll(".guestOnly").forEach(el => el.style.display = currentUser ? "none" : "");
+
+      const label = document.getElementById("userMenuLabel");
+      const emailSmall = document.getElementById("userEmailSmall");
+
+      if(currentUser){
+        label.textContent = currentUser.email.split("@")[0];
+        emailSmall.textContent = currentUser.email;
+        document.getElementById("dashUid").textContent = currentUser.uid;
+      }else{
+        label.textContent = "User";
+        emailSmall.textContent = "—";
+        document.getElementById("dashUid").textContent = "—";
+      }
+    }
+
+    /******************************************************************
+     * REGISTER + LOGIN
+     ******************************************************************/
+    function initAuthForms(){
+      document.getElementById("formRegister").addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const form = e.target;
+        if(!form.checkValidity()){
+          form.classList.add("was-validated");
+          return;
+        }
+
+        const btn = document.getElementById("btnRegister");
+        const spin = document.getElementById("regSpin");
+        setBusy(btn, spin, true);
+
+        const name = document.getElementById("regName").value.trim();
+        const org  = document.getElementById("regOrg").value;
+        const emailInput = document.getElementById("regEmail");
+        const email= emailInput.value.trim().toLowerCase();
+        const pass = document.getElementById("regPass").value;
+        const level= document.getElementById("regLevel").value;
+        const stream=document.getElementById("regStream").value;
+
+        const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        if(!gmailPattern.test(email)){
+          emailInput.setCustomValidity("Email format not allowed");
+          form.classList.add("was-validated");
+          setBusy(btn, spin, false);
+          toast("Email format not allowed. Only @gmail.com is accepted.", "danger");
+          return;
+        }else{
+          emailInput.setCustomValidity("");
+        }
+
+        try{
+          const cred = await auth.createUserWithEmailAndPassword(email, pass);
+          await db.ref(`users/${cred.user.uid}/profile/account`).set({
+            name, org, level, stream, email, createdAt: nowIso()
+          });
+          toast("Account created ✅", "success");
+          showView("dashboard");
+        }catch(err){
+          console.error(err);
+          toast(err.message || "Registration failed.", "danger");
+        }finally{
+          setBusy(btn, spin, false);
+        }
+      });
+
+      document.getElementById("regEmail").addEventListener("input", ()=>{
+        const emailInput = document.getElementById("regEmail");
+        const email = emailInput.value.trim().toLowerCase();
+        const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        if(!email || gmailPattern.test(email)){
+          emailInput.setCustomValidity("");
+        }else{
+          emailInput.setCustomValidity("Email format not allowed");
+        }
+      });
+
+      document.getElementById("formLogin").addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        const form = e.target;
+        if(!form.checkValidity()){
+          form.classList.add("was-validated");
+          return;
+        }
+
+        const btn = document.getElementById("btnLogin");
+        const spin = document.getElementById("loginSpin");
+        setBusy(btn, spin, true);
+
+        const email = document.getElementById("loginEmail").value.trim();
+        const pass  = document.getElementById("loginPass").value;
+
+        try{
+          await auth.signInWithEmailAndPassword(email, pass);
+          toast("Logged in ✅", "success");
+          showView("dashboard");
+        }catch(err){
+          console.error(err);
+          toast(err.message || "Login failed.", "danger");
+        }finally{
+          setBusy(btn, spin, false);
+        }
+      });
+    }
+
+    /******************************************************************
+     * IQ FORM RENDERING (FROM ATTEMPT) + PROGRESS
+     ******************************************************************/
+    function countAnsweredIQ(){
+      if(!iqAttempt?.questions?.length) return 0;
+      let answered = 0;
+      for(let i=0;i<iqAttempt.questions.length;i++){
+        const sel = document.querySelector(`input[name="iq_${i}"]:checked`);
+        if(sel) answered++;
+      }
+      return answered;
+    }
+
+    function updateIQProgressUI(){
+      const answered = countAnsweredIQ();
+      const total = iqAttempt?.questions?.length || IQ_TEST_SIZE;
+      const pct = total ? Math.round((answered/total)*100) : 0;
+      const bar = document.getElementById("iqProgressBar");
+      const txt = document.getElementById("iqProgressText");
+      if(bar) bar.style.width = `${pct}%`;
+      if(txt) txt.textContent = `Answered: ${answered}/${total}`;
+    }
+
+    function renderIQFormFromAttempt(){
+      const form = document.getElementById("formIQ");
+      form.innerHTML = "";
+
+      if(!iqAttempt?.questions?.length){
+        form.innerHTML = `<div class="muted">No question set loaded.</div>`;
+        return;
+      }
+
+      iqAttempt.questions.forEach((item, idx)=>{
+        const qId = `iq_${idx}`;
+        const typeMeta = IQ_TYPE_META[item.type] || { label:"IQ", icon:"bi-question-circle" };
+        const block = document.createElement("div");
+        block.className = "feature mb-3";
+
+        block.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div class="fw-bold">
+              ${idx+1}) ${escapeHtml(item.q)}
+            </div>
+            <div class="iq-meta">
+              <span class="iq-type-chip">${iqIcon(item.type)} <span>${escapeHtml(typeMeta.label)}</span></span>
+              <span class="badge badge-soft">${escapeHtml(item.difficulty)}</span>
+            </div>
+          </div>
+          <div class="mt-3" id="${qId}_opts"></div>
+        `;
+
+        const optDiv = block.querySelector(`#${qId}_opts`);
+        item.optionsShuffled.forEach((opt, oIdx)=>{
+          const id = `${qId}_${oIdx}`;
+          const row = document.createElement("label");
+          row.className = "iq-option w-100 mb-2";
+          row.setAttribute("for", id);
+          row.innerHTML = `
+            <input class="form-check-input" type="radio" name="${qId}" id="${id}" value="${oIdx}">
+            <div>
+              <div class="fw-semibold">${escapeHtml(opt)}</div>
+            </div>
+          `;
+          optDiv.appendChild(row);
+        });
+
+        form.appendChild(block);
+      });
+
+      // Hook progress update on change
+      form.querySelectorAll('input[type="radio"]').forEach(r=>{
+        r.addEventListener("change", ()=>{
+          updateIQProgressUI();
+          // persist selected answers locally (optional)
+          persistIqSelectionsToLocal();
+        });
+      });
+
+      // re-apply saved selections
+      applySavedIqSelections();
+      updateIQProgressUI();
+    }
+
+    function persistIqSelectionsToLocal(){
+      if(!iqAttempt?.questions?.length) return;
+      const selected = {};
+      for(let i=0;i<iqAttempt.questions.length;i++){
+        const sel = document.querySelector(`input[name="iq_${i}"]:checked`);
+        if(sel) selected[i] = Number(sel.value);
+      }
+      const payload = { ...iqAttempt, selected };
+      localStorage.setItem(attemptStorageKey(), JSON.stringify(payload));
+    }
+
+    function applySavedIqSelections(){
+      const saved = safeJsonParse(localStorage.getItem(attemptStorageKey()));
+      if(!saved?.selected) return;
+      for(const [iStr, val] of Object.entries(saved.selected)){
+        const i = Number(iStr);
+        const radio = document.querySelector(`input[name="iq_${i}"][value="${val}"]`);
+        if(radio) radio.checked = true;
+      }
+    }
+
+    /******************************************************************
+     * INTEREST FORM RENDERING
+     ******************************************************************/
+    function renderInterestForm(){
+      const form = document.getElementById("formInterest");
+      form.innerHTML = "";
+
+      INTEREST_ITEMS.forEach((item, idx)=>{
+        const qId = `int_${idx}`;
+        const block = document.createElement("div");
+        block.className = "feature mb-3";
+        block.innerHTML = `
+          <div class="d-flex justify-content-between gap-2 flex-wrap">
+            <div>
+              <div class="fw-bold">${idx+1}) ${escapeHtml(item.text)}</div>
+              <div class="muted small">Domain: ${escapeHtml(domainLabel(item.domain))}</div>
+            </div>
+            <span class="badge badge-soft align-self-start">1 (Low) → 5 (High)</span>
+          </div>
+          <div class="mt-2 d-flex flex-wrap gap-3"></div>
+        `;
+        const group = block.querySelector(".mt-2");
+        for(let v=1; v<=5; v++){
+          const id = `${qId}_${v}`;
+          const div = document.createElement("div");
+          div.className = "form-check form-check-inline";
+          div.innerHTML = `
+            <input class="form-check-input" type="radio" name="${qId}" id="${id}" value="${v}">
+            <label class="form-check-label" for="${id}">${v}</label>
+          `;
+          group.appendChild(div);
+        }
+        form.appendChild(block);
+      });
+    }
+
+    /******************************************************************
+     * QUESTIONNAIRE ACTIONS (IQ + Interest) + SAVING META
+     ******************************************************************/
+    function initQuestionnaireActions(){
+      document.getElementById("btnNewIQ").addEventListener("click", ()=>{
+        if(!currentUser){
+          toast("Please log in first.", "warning");
+          return;
+        }
+        clearIqAttempt();
+        createNewIqAttempt();
+        toast("New IQ question set generated ✅", "success");
+      });
+
+      document.getElementById("btnSubmitIQ").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        if(!iqAttempt?.questions?.length) return toast("No IQ question set loaded.", "danger");
+
+        // Validate all answered
+        for(let i=0; i<iqAttempt.questions.length; i++){
+          const sel = document.querySelector(`input[name="iq_${i}"]:checked`);
+          if(!sel) return toast("Please answer all IQ questions.", "warning");
+        }
+
+        // Score
+        let correct = 0;
+        const answers = [];
+        for(let i=0; i<iqAttempt.questions.length; i++){
+          const q = iqAttempt.questions[i];
+          const sel = document.querySelector(`input[name="iq_${i}"]:checked`);
+          const chosen = Number(sel.value);
+          const isCorrect = (chosen === q.correctIndexAfterShuffle);
+          if(isCorrect) correct++;
+
+          answers.push({
+            qIndex: i,
+            questionId: q.id,
+            type: q.type,
+            difficulty: q.difficulty,
+            prompt: q.q,
+            chosenIndexAfterShuffle: chosen,
+            chosenText: q.optionsShuffled[chosen],
+            correctIndexAfterShuffle: q.correctIndexAfterShuffle,
+            correctText: q.optionsShuffled[q.correctIndexAfterShuffle],
+            optionOrder: q.optionOrder // original option indices order
+          });
+        }
+
+        const iqScore = Math.round((correct / iqAttempt.questions.length) * 100);
+
+        try{
+          const ts = Date.now();
+          const payload = {
+            type: "IQ",
+            at: nowIso(),
+            attempt: {
+              seedId: iqAttempt.seedId,
+              createdAt: iqAttempt.createdAt,
+              size: iqAttempt.size,
+              selectedQuestionIds: iqAttempt.questions.map(x=>x.id),
+              optionOrders: iqAttempt.questions.map(x=>({ id:x.id, optionOrder:x.optionOrder, originalAnswerIndex:x.originalAnswerIndex, correctIndexAfterShuffle:x.correctIndexAfterShuffle }))
+            },
+            correct,
+            total: iqAttempt.questions.length,
+            iqScore,
+            answers
+          };
+
+          await db.ref(`users/${currentUser.uid}/responses/${ts}/iq`).set(payload);
+          await db.ref(`users/${currentUser.uid}/profile/latest/iq`).set({
+            iqScore, correct, total: iqAttempt.questions.length, at: nowIso(),
+            meta: {
+              seedId: iqAttempt.seedId,
+              selectedQuestionIds: iqAttempt.questions.map(x=>x.id)
+            }
+          });
+
+          toast(`IQ saved ✅ Score: ${iqScore}/100`, "success");
+
+          // Optional: create a fresh attempt for next time (or keep it)
+          clearIqAttempt();
+          createNewIqAttempt();
+
+          await fetchLatestProfile();
+          await recomputeAndSaveProfiling();
+        }catch(err){
+          console.error(err);
+          toast("Failed to save IQ. Check DB rules.", "danger");
+        }
+      });
+
+      document.getElementById("btnSubmitInterest").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+
+        const answers = [];
+        const domainSums = Object.fromEntries(DOMAINS.map(d=>[d,0]));
+        const domainCounts = Object.fromEntries(DOMAINS.map(d=>[d,0]));
+
+        for(let i=0; i<INTEREST_ITEMS.length; i++){
+          const sel = document.querySelector(`input[name="int_${i}"]:checked`);
+          if(!sel) return toast("Please answer all interest items.", "warning");
+
+          const val = Number(sel.value);
+          const domain = INTEREST_ITEMS[i].domain;
+          answers.push({
+            text: INTEREST_ITEMS[i].text,
+            domain,
+            domainLabel: domainLabel(domain),
+            val
+          });
+          domainSums[domain] += val;
+          domainCounts[domain] += 1;
+        }
+
+        const interestVector = {};
+        DOMAINS.forEach(d=>{
+          const avg = domainCounts[d] ? domainSums[d]/domainCounts[d] : 1;
+          interestVector[d] = Math.round(((avg - 1) / 4) * 100);
+        });
+
+        try{
+          const ts = Date.now();
+          const payload = {
+            type:"Interest",
+            at: nowIso(),
+            answers,
+            interestVector,
+            interestLabels: DOMAIN_LABELS
+          };
+          await db.ref(`users/${currentUser.uid}/responses/${ts}/interest`).set(payload);
+          await db.ref(`users/${currentUser.uid}/profile/latest/interests`).set({
+            interestVector,
+            interestLabels: DOMAIN_LABELS,
+            at: nowIso()
+          });
+
+          toast("Interest survey saved ✅", "success");
+          await fetchLatestProfile();
+          await recomputeAndSaveProfiling();
+        }catch(err){
+          console.error("Interest save error:", err);
+          toast(err.message || "Failed to save interests.", "danger");
+        }
+      });
+    }
+
+    /******************************************************************
+     * PROFILING: Decision Tree + NN Demo + Blend
+     ******************************************************************/
+    function getTopDomain(interestVector){
+      if(!interestVector) return { domain:null, label:null, score:0 };
+      let best = { domain:null, label:null, score:-Infinity };
+      for(const [d,s] of Object.entries(interestVector)){
+        if(s > best.score) best = { domain:d, label: domainLabel(d), score:s };
+      }
+      return best;
+    }
+
+    function decisionTreeProfile(iqScore, interestVector){
+      const top = getTopDomain(interestVector);
+      const iq = iqScore ?? 0;
+      const domain = top.domain || "software_engineering";
+      const dScore = top.score ?? 0;
+
+      const path = [];
+
+      let iqTier = "low";
+      if(iq >= 80) iqTier = "high";
+      else if(iq >= 60) iqTier = "mid";
+      path.push(`IQ=${iq} → tier=${iqTier}`);
+
+      let interestStrength = "moderate";
+      if(dScore >= 75) interestStrength = "strong";
+      else if(dScore < 45) interestStrength = "weak";
+      path.push(`Top interest=${domainLabel(domain)} (${dScore}%) → ${interestStrength}`);
+
+      const domainToTrack = {
+        software_engineering: 0,
+        web_development: 1,
+        ai_ml: 2,
+        data_science: 3,
+        cybersecurity: 4,
+        cloud_devops: 5,
+        mobile_development: 6,
+        ui_ux: 7
+      };
+      let trackIdx = domainToTrack[domain] ?? 0;
+
+      if(iqTier === "low"){
+        if(["ai_ml","data_science","cloud_devops"].includes(domain)){
+          path.push("Low IQ tier + high-complexity domain → recommend foundation-first track");
+          trackIdx = 1;
+        }
+      }
+      if(interestStrength === "weak"){
+        path.push("Weak top-interest signal → recommend broad CS foundations");
+        trackIdx = 0;
+      }
+
+      const conf = Math.round((0.45*(iq/100) + 0.55*(dScore/100)) * 100);
+      const dist = new Array(TRACKS.length).fill(0.05);
+      dist[trackIdx] = 0.75;
+      if(trackIdx-1 >= 0) dist[trackIdx-1] += 0.05;
+      if(trackIdx+1 < dist.length) dist[trackIdx+1] += 0.05;
+
+      const sum = dist.reduce((a,b)=>a+b,0);
+      const norm = dist.map(x=>x/sum);
+
+      return {
+        trackIdx,
+        trackName: TRACKS[trackIdx],
+        confidence: Math.min(95, Math.max(20, conf)),
+        decisionPath: path.join(" → "),
+        dist: norm
+      };
+    }
+
+    async function neuralNetDemo(iqScore, interestVector){
+      if(iqScore == null || !interestVector){
+        const uniform = new Array(TRACKS.length).fill(1/TRACKS.length);
+        return { dist: uniform, note:"No data; uniform distribution." };
+      }
+
+      const samples = 180;
+      const xs = [];
+      const ys = [];
+
+      function softmax(arr){
+        const m = Math.max(...arr);
+        const ex = arr.map(v=>Math.exp(v-m));
+        const s = ex.reduce((a,b)=>a+b,0);
+        return ex.map(v=>v/s);
+      }
+
+      for(let i=0; i<samples; i++){
+        const iq = Math.random();
+        const ints = DOMAINS.map(()=>Math.random());
+        let topIdx = 0;
+        for(let k=1;k<ints.length;k++) if(ints[k] > ints[topIdx]) topIdx = k;
+
+        let logits = new Array(8).fill(-1.0);
+        logits[topIdx] = 2.0 + ints[topIdx]*1.5;
+
+        const complex = [2,3,5];
+        if(iq < 0.45 && complex.includes(topIdx)){
+          logits[1] += 1.2;
+          logits[0] += 0.8;
+        }
+        if(iq > 0.8){
+          logits[2] += 0.8;
+          logits[3] += 0.8;
+        }
+
+        ys.push(softmax(logits));
+        xs.push([iq, ...ints]);
+      }
+
+      const model = tf.sequential();
+      model.add(tf.layers.dense({ units: 16, activation: "relu", inputShape: [9] }));
+      model.add(tf.layers.dense({ units: 12, activation: "relu" }));
+      model.add(tf.layers.dense({ units: 8, activation: "softmax" }));
+      model.compile({ optimizer: tf.train.adam(0.03), loss: "categoricalCrossentropy" });
+
+      const xT = tf.tensor2d(xs);
+      const yT = tf.tensor2d(ys);
+      await model.fit(xT, yT, { epochs: 10, batchSize: 24, verbose: 0 });
+      xT.dispose(); yT.dispose();
+
+      const iqN = Math.max(0, Math.min(1, iqScore/100));
+      const intsN = DOMAINS.map(d => Math.max(0, Math.min(1, (interestVector[d] ?? 0)/100)));
+
+      const input = tf.tensor2d([[iqN, ...intsN]]);
+      const pred = model.predict(input);
+      const dist = Array.from(await pred.data());
+      input.dispose(); pred.dispose(); model.dispose();
+
+      const sum = dist.reduce((a,b)=>a+b,0) || 1;
+      return { dist: dist.map(v=>v/sum), note:"NN trained on synthetic data for educational demonstration." };
+    }
+
+    function blendDistributions(dtDist, nnDist, wDT=0.6, wNN=0.4){
+      const out = dtDist.map((v,i)=> (wDT*v) + (wNN*(nnDist[i] ?? 0)));
+      const sum = out.reduce((a,b)=>a+b,0) || 1;
+      return out.map(v=>v/sum);
+    }
+    function argmax(arr){
+      let best=0;
+      for(let i=1;i<arr.length;i++) if(arr[i] > arr[best]) best=i;
+      return best;
+    }
+
+    function buildExplainability(iqScore, interestVector, dt, nnNote, blendDist){
+      const top = getTopDomain(interestVector);
+      const top3 = Object.entries(interestVector || {})
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,3)
+        .map(([d,s])=>`${domainLabel(d)} (${s}%)`)
+        .join(", ");
+
+      const bestTrackIdx = argmax(blendDist);
+      const bestTrack = TRACKS[bestTrackIdx];
+
+      return `Combined approach:
+• Decision Tree path: ${dt.decisionPath}
+• Neural Net demo: probability-based recommendation (educational)
+
+Key signals:
+• IQ score: ${iqScore}/100
+• Strongest interests: ${top3 || "—"}
+• Top domain: ${top.label || top.domain || "—"} (${top.score}%)
+
+Final recommendation:
+• ${bestTrack}
+• Blend weights: 60% Decision Tree + 40% Neural Net
+
+Note: ${nnNote}`;
+    }
+
+    async function recomputeAndSaveProfiling(){
+      if(!currentUser) return;
+
+      const iq = latestProfile?.iq?.iqScore ?? null;
+      const interests = latestProfile?.interests?.interestVector ?? null;
+
+      if(iq == null || !interests){
+        await db.ref(`users/${currentUser.uid}/profile/latest/profiling`).set({
+          at: nowIso(),
+          status: "incomplete",
+          note: "Complete both IQ and Interest assessments."
+        });
+        return;
+      }
+
+      try{
+        const dt = decisionTreeProfile(iq, interests);
+        toast("Recomputing Neural Net demo…", "info");
+        const nn = await neuralNetDemo(iq, interests);
+
+        const blended = blendDistributions(dt.dist, nn.dist, 0.6, 0.4);
+        const finalIdx = argmax(blended);
+        const finalTrack = TRACKS[finalIdx];
+
+        const peak = blended[finalIdx];
+        const confidence = Math.round(Math.min(95, Math.max(20, (0.6*(dt.confidence/100) + 0.4*peak) * 100)));
+
+        const explainability = buildExplainability(iq, interests, dt, nn.note, blended);
+
+        const profiling = {
+          at: nowIso(),
+          status: "complete",
+          iqScore: iq,
+          interestVector: interests,
+          decisionTree: { trackIdx: dt.trackIdx, trackName: dt.trackName, confidence: dt.confidence, decisionPath: dt.decisionPath, dist: dt.dist },
+          neuralNet: { note: nn.note, dist: nn.dist },
+          blended: { weights: { decisionTree: 0.6, neuralNet: 0.4 }, dist: blended, trackIdx: finalIdx, trackName: finalTrack, confidence },
+          topDomain: getTopDomain(interests),
+          explainability
+        };
+
+        await db.ref(`users/${currentUser.uid}/profile/latest/profiling`).set(profiling);
+
+        const ts = Date.now();
+        await db.ref(`users/${currentUser.uid}/responses/${ts}/profiling`).set(profiling);
+
+        toast(`Profiling updated ✅ Recommended: ${finalTrack}`, "success");
+        await fetchLatestProfile();
+        loadDashboard();
+        loadResults();
+      }catch(err){
+        console.error(err);
+        toast("Profiling failed. Check console.", "danger");
+      }
+    }
+
+    /******************************************************************
+     * LOADERS: PROFILE + DASHBOARD + RESULTS
+     ******************************************************************/
+    async function fetchLatestProfile(){
+      if(!currentUser) return null;
+      const snap = await db.ref(`users/${currentUser.uid}/profile/latest`).get();
+      latestProfile = snap.exists() ? snap.val() : null;
+      return latestProfile;
+    }
+
+    async function loadDashboard(){
+      if(!currentUser) return;
+      await fetchLatestProfile();
+
+      const iq = latestProfile?.iq?.iqScore;
+      const top = getTopDomain(latestProfile?.interests?.interestVector);
+      const prof = latestProfile?.profiling?.blended;
+
+      document.getElementById("dashIq").textContent = iq != null ? `${iq}` : "—";
+      document.getElementById("dashIqHint").textContent = iq != null ? "Latest IQ stored in Firebase." : "Take the IQ quiz to compute.";
+      document.getElementById("dashTopDomain").textContent = top.label || "—";
+      document.getElementById("dashTopDomainHint").textContent = top.label ? `Interest score: ${top.score}%` : "Complete interest survey.";
+      document.getElementById("dashTrack").textContent = prof?.trackName || "—";
+      document.getElementById("dashTrackHint").textContent = prof?.trackName ? "Recommendation is blended (DT + NN demo)." : "Results appear after profiling.";
+
+      const conf = prof?.confidence;
+      document.getElementById("dashConfidenceChip").textContent = `Confidence: ${conf != null ? conf+"%" : "—"}`;
+
+      document.getElementById("dashExplain").textContent = latestProfile?.profiling?.explainability
+        || "Complete both assessments to generate your profile and guidance.";
+
+      const lastSaved = latestProfile?.profiling?.at || latestProfile?.interests?.at || latestProfile?.iq?.at;
+      document.getElementById("dashLastSaved").textContent = lastSaved ? new Date(lastSaved).toLocaleString() : "—";
+      document.getElementById("dashUid").textContent = currentUser.uid;
+    }
+
+    async function loadResults(){
+      if(!currentUser) return;
+      await fetchLatestProfile();
+
+      const iq = latestProfile?.iq?.iqScore ?? null;
+      const interests = latestProfile?.interests?.interestVector ?? null;
+      const profiling = latestProfile?.profiling;
+
+      document.getElementById("resIq").textContent = iq != null ? `${iq}` : "—";
+      const blended = profiling?.blended;
+      document.getElementById("resConf").textContent = blended?.confidence != null ? `${blended.confidence}%` : "—";
+      document.getElementById("resTrack").textContent = blended?.trackName || "—";
+      document.getElementById("resTrackHint").textContent = blended
+        ? `Blend weights: DT ${Math.round(blended.weights.decisionTree*100)}% / NN ${Math.round(blended.weights.neuralNet*100)}%`
+        : "Complete both assessments first.";
+
+      const top = profiling?.topDomain || getTopDomain(interests);
+      document.getElementById("resTopDomain").textContent = top?.label || "—";
+      document.getElementById("resTopDomainScore").textContent = top?.label ? `Score: ${top.score}%` : "—";
+
+      document.getElementById("resDecisionPath").textContent = profiling?.decisionTree?.decisionPath || "—";
+      document.getElementById("resExplainability").textContent = profiling?.explainability || "No profiling yet. Submit IQ + interest survey.";
+
+      renderInterestChart(interests);
+      renderTrackChart(profiling?.decisionTree?.dist, profiling?.neuralNet?.dist, blended?.dist);
+    }
+
+    function chartTextColor(){ return getComputedStyle(document.documentElement).getPropertyValue("--text").trim(); }
+    function chartMutedColor(){ return getComputedStyle(document.documentElement).getPropertyValue("--muted").trim(); }
+
+    function renderInterestChart(interestVector){
+      const ctx = document.getElementById("chartInterests");
+      const labels = DOMAIN_META.map(d => d.label);
+      const data = DOMAIN_META.map(d => interestVector?.[d.key] ?? 0);
+
+      if(charts.interests) charts.interests.destroy();
+      charts.interests = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Interest (0–100)", data }] },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: chartTextColor() } } },
+          scales: {
+            x: { ticks: { color: chartMutedColor() } },
+            y: { ticks: { color: chartMutedColor() }, suggestedMin:0, suggestedMax:100 }
+          }
+        }
+      });
+    }
+
+    function renderTrackChart(dtDist, nnDist, blendDist){
+      const ctx = document.getElementById("chartTracks");
+      const dt = (dtDist || new Array(TRACKS.length).fill(0)).map(x=>Math.round(x*100));
+      const nn = (nnDist || new Array(TRACKS.length).fill(0)).map(x=>Math.round(x*100));
+      const bl = (blendDist || new Array(TRACKS.length).fill(0)).map(x=>Math.round(x*100));
+
+      if(charts.tracks) charts.tracks.destroy();
+      charts.tracks = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: TRACKS,
+          datasets: [
+            { label: "Decision Tree %", data: dt },
+            { label: "Neural Net %", data: nn },
+            { label: "Blended %", data: bl }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: chartTextColor() } } },
+          scales: {
+            x: { ticks: { color: chartMutedColor() } },
+            y: { ticks: { color: chartMutedColor() }, suggestedMin:0, suggestedMax:100 }
+          }
+        }
+      });
+    }
+
+    /******************************************************************
+     * GEMINI: ROADMAP + CHATBOT
+     ******************************************************************/
+    async function geminiGenerate(promptText){
+      const body = { contents: [{ role:"user", parts:[{ text: promptText }] }] };
+
+      const resp = await fetch(GEMINI_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if(!resp.ok){
+        const t = await resp.text();
+        throw new Error(`Gemini error: ${resp.status} ${t}`);
+      }
+
+      const json = await resp.json();
+      const text = json?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("") || "";
+      return text.trim();
+    }
+
+    function buildRoadmapPrompt(profile, opts){
+      const iq = profile?.iq?.iqScore ?? "unknown";
+      const interests = profile?.interests?.interestVector ?? {};
+      const top = getTopDomain(interests);
+      const blended = profile?.profiling?.blended;
+
+      const target = opts.target || top.label || "Software Engineering";
+      const level = opts.level || "Beginner";
+      const hours = opts.hours || "6";
+      const constraints = opts.constraints || "None";
+
+      return `You are a career guidance mentor for Computer Science / IT students.
+Generate a structured, realistic roadmap for the student.
+
+STUDENT PROFILE:
+- IQ score (0-100): ${iq}
+- Interest vector (0-100): ${JSON.stringify(Object.fromEntries(Object.entries(interests).map(([k,v]) => [domainLabel(k), v])))}
+- Top domain: ${top.label || "unknown"} (${top.score || "unknown"}%)
+- Recommended track (blended): ${blended?.trackName || "unknown"} (confidence ${blended?.confidence || "unknown"}%)
+
+PREFERENCES:
+- Target domain (override): ${target}
+- Skill level: ${level}
+- Time commitment: ${hours} hours/week
+- Constraints: ${constraints}
+
+OUTPUT RULES:
+1) Create a 3–6 month roadmap split into phases (with timelines).
+2) Provide a weekly schedule template for ${hours} hours/week.
+3) List projects from beginner → advanced with deliverables.
+4) Use FREE resources only (official docs, free courses, free videos, open-source).
+5) Add milestones and objective measurement criteria.
+6) Include "common mistakes & how to avoid them".
+Return clean headings and bullet points.`;
+    }
+
+    function formatRoadmapToHtml(text){
+      const lines = (text || "").split("\n");
+      let html = "";
+      for(const raw of lines){
+        const line = raw.trim();
+        if(!line){ html += `<div class="my-2"></div>`; continue; }
+        if(line.startsWith("### ")){ html += `<div class="h5 fw-bold mt-3">${escapeHtml(line.replace(/^###\s+/,""))}</div>`; continue; }
+        if(line.startsWith("## ")){ html += `<div class="h4 fw-bold mt-4">${escapeHtml(line.replace(/^##\s+/,""))}</div>`; continue; }
+        if(line.startsWith("# ")){ html += `<div class="h3 fw-bold mt-4">${escapeHtml(line.replace(/^#\s+/,""))}</div>`; continue; }
+        if(line.startsWith("- ") || line.startsWith("• ")){
+          html += `<div class="mt-2"><i class="bi bi-dot"></i> ${escapeHtml(line.replace(/^[-•]\s+/,""))}</div>`;
+          continue;
+        }
+        html += `<div class="mt-1">${escapeHtml(line)}</div>`;
+      }
+      return html || `<div class="muted">No content.</div>`;
+    }
+
+    function buildChatSystemPrompt(profile){
+      const iq = profile?.iq?.iqScore ?? "unknown";
+      const interests = profile?.interests?.interestVector ?? {};
+      const top = getTopDomain(interests);
+      const blended = profile?.profiling?.blended;
+
+      return `You are a career guidance chatbot for CS/IT students.
+Be practical, structured, and specific. Avoid fluff.
+
+User profile context:
+- IQ score: ${iq}
+- Interests (0-100): ${JSON.stringify(Object.fromEntries(Object.entries(interests).map(([k,v]) => [domainLabel(k), v])))}
+- Top domain: ${top.label || "unknown"} (${top.score || "unknown"}%)
+- Recommended track: ${blended?.trackName || "unknown"} (confidence ${blended?.confidence || "unknown"}%)
+
+Safety:
+- Do not provide illegal instructions.
+- For cybersecurity: focus on legal learning (CTFs, labs, OWASP, defensive security).
+When useful: suggest next steps, projects, and free resources.`;
+    }
+
+    async function initRoadmap(){
+      document.getElementById("btnGenerateRoadmap").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        await fetchLatestProfile();
+
+        if(!latestProfile?.iq?.iqScore || !latestProfile?.interests?.interestVector){
+          toast("Complete IQ + Interest assessments first.", "warning");
+          showView("questionnaires");
+          return;
+        }
+
+        const btn = document.getElementById("btnGenerateRoadmap");
+        const spin = document.getElementById("rmSpin");
+        setBusy(btn, spin, true);
+
+        try{
+          const opts = {
+            target: document.getElementById("rmTarget").value,
+            level: document.getElementById("rmLevel").value,
+            hours: document.getElementById("rmHours").value,
+            constraints: document.getElementById("rmConstraints").value.trim()
+          };
+
+          const prompt = buildRoadmapPrompt(latestProfile, opts);
+          const text = await geminiGenerate(prompt);
+
+          document.getElementById("roadmapOutput").innerHTML = formatRoadmapToHtml(text);
+
+          const ts = Date.now();
+          await db.ref(`users/${currentUser.uid}/roadmaps/${ts}`).set({
+            at: nowIso(), opts, prompt, responseText: text
+          });
+
+          toast("Roadmap generated + saved ✅", "success");
+        }catch(err){
+          console.error(err);
+          toast(err.message || "Roadmap generation failed.", "danger");
+        }finally{
+          setBusy(btn, spin, false);
+        }
+      });
+
+      document.getElementById("btnLoadLastRoadmap").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        try{
+          const snap = await db.ref(`users/${currentUser.uid}/roadmaps`).orderByKey().limitToLast(1).get();
+          if(!snap.exists()) return toast("No saved roadmap found.", "warning");
+          let last = null; snap.forEach(child => last = child.val());
+          document.getElementById("roadmapOutput").innerHTML = formatRoadmapToHtml(last?.responseText || "");
+          toast("Loaded last roadmap ✅", "success");
+        }catch(err){
+          console.error(err);
+          toast("Failed to load roadmap.", "danger");
+        }
+      });
+
+      document.getElementById("btnCopyRoadmap").addEventListener("click", async ()=>{
+        const text = document.getElementById("roadmapOutput").innerText.trim();
+        if(!text) return toast("Nothing to copy.", "warning");
+        await navigator.clipboard.writeText(text);
+        toast("Copied to clipboard ✅", "success");
+      });
+    }
+
+ function renderChat(){
+  const wrap = document.getElementById("chatWrap");
+  wrap.innerHTML = "";
+
+  if(chatMessages.length === 0){
+    wrap.innerHTML = `<div class="muted">Ask something like: “Best domain for me?”</div>`;
+    return;
+  }
+
+  for(const m of chatMessages){
+    const row = document.createElement("div");
+    row.className = "mb-2 d-flex";
+
+    const bubble = document.createElement("div");
+    bubble.className = `bubble-msg ${m.role === "user" ? "user" : ""}`;
+
+    if (m.role === "ai") {
+      bubble.innerHTML = formatAiResponse(m.text);
+    } else {
+      bubble.textContent = m.text;
+    }
+
+    row.appendChild(bubble);
+    wrap.appendChild(row);
+  }
+
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+
+    function formatAiResponse(text) {
+  if (!text) return "";
+
+  const lines = text.split("\n");
+  let html = "";
+  let inList = false;
+
+  for (let raw of lines) {
+    const line = raw.trim();
+
+    if (!line) {
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      html += "<div class='mb-2'></div>";
+      continue;
+    }
+
+    // Numbered heading/list items
+    if (/^\d+\.\s+/.test(line)) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      html += `<li>${escapeHtml(line).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</li>`;
+      continue;
+    }
+
+    // Bullet points
+    if (/^[\*\-]\s+/.test(line)) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      const cleaned = line.replace(/^[\*\-]\s+/, "");
+      html += `<li>${escapeHtml(cleaned).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</li>`;
+      continue;
+    }
+
+    if (inList) {
+      html += "</ul>";
+      inList = false;
+    }
+
+    html += `<div class="mb-2">${escapeHtml(line).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</div>`;
+  }
+
+  if (inList) html += "</ul>";
+
+  return html;
+}
+
+
+    async function sendChatMessage(userText){
+      await fetchLatestProfile();
+      const sys = buildChatSystemPrompt(latestProfile || {});
+      const recent = chatMessages.slice(-8).map(m => `${m.role.toUpperCase()}: ${m.text}`).join("\n");
+      const prompt = `${sys}\n\nRecent conversation:\n${recent || "(none)"}\n\nUSER: ${userText}\nASSISTANT:`;
+
+      document.getElementById("chatStatus").textContent = "Thinking…";
+      const btn = document.getElementById("btnSendChat");
+      const spin = document.getElementById("chatSpin");
+      setBusy(btn, spin, true);
+
+      try{
+        const reply = await geminiGenerate(prompt);
+        chatMessages.push({ role:"ai", text: reply, at: nowIso() });
+        renderChat();
+
+        const key = dateKey();
+        await db.ref(`users/${currentUser.uid}/chats/${key}`).set({ at: nowIso(), messages: chatMessages.slice(-50) });
+        document.getElementById("chatStatus").textContent = "Saved";
+      }catch(err){
+        console.error(err);
+        document.getElementById("chatStatus").textContent = "Error";
+        toast(err.message || "Chat failed.", "danger");
+      }finally{
+        setBusy(btn, spin, false);
+        setTimeout(()=>{ document.getElementById("chatStatus").textContent = "Idle"; }, 1800);
+      }
+    }
+
+    async function initChatbot(){
+  renderChat();
+
+  function appendWipReply(){
+    chatMessages.push({ role:"ai", text:"Work in progress.", at: nowIso() });
+    renderChat();
+    document.getElementById("chatStatus").textContent = "Idle";
+  }
+
+  document.getElementById("btnSendChat").addEventListener("click", async ()=>{
+    if(!currentUser) return toast("Please log in first.", "warning");
+
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if(!text) return;
+
+    input.value = "";
+    chatMessages.push({ role:"user", text, at: nowIso() });
+    renderChat();
+
+    // UI status (optional)
+    document.getElementById("chatStatus").textContent = "Work in progress";
+    const btn = document.getElementById("btnSendChat");
+    const spin = document.getElementById("chatSpin");
+    setBusy(btn, spin, true);
+
+    // Fake "thinking" delay (optional)
+    setTimeout(()=>{
+      setBusy(btn, spin, false);
+      appendWipReply();
+    }, 250);
+  });
+
+  document.getElementById("chatInput").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      document.getElementById("btnSendChat").click();
+    }
+  });
+
+  // Quick prompt chips still work (they only fill the input)
+  document.querySelectorAll("[data-chip]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.getElementById("chatInput").value = btn.getAttribute("data-chip");
+      document.getElementById("chatInput").focus();
+    });
+  });
+
+  document.getElementById("btnClearChat").addEventListener("click", ()=>{
+    chatMessages = [];
+    renderChat();
+    toast("Local chat cleared.", "info");
+  });
+
+  document.getElementById("btnLoadChat").addEventListener("click", async ()=>{
+    // Optional: disable loading while WIP
+    toast("Work in progress.", "info");
+  });
+}
+
+     // renderChat();
+
+      document.getElementById("btnSendChat").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        const input = document.getElementById("chatInput");
+        const text = input.value.trim();
+        if(!text) return;
+        input.value = "";
+
+        chatMessages.push({ role:"user", text, at: nowIso() });
+        renderChat();
+        await sendChatMessage(text);
+      });
+
+      document.getElementById("chatInput").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){ e.preventDefault(); document.getElementById("btnSendChat").click(); }
+      });
+
+      document.querySelectorAll("[data-chip]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          document.getElementById("chatInput").value = btn.getAttribute("data-chip");
+          document.getElementById("chatInput").focus();
+        });
+      });
+
+      document.getElementById("btnClearChat").addEventListener("click", ()=>{
+        chatMessages = [];
+        renderChat();
+        toast("Local chat cleared.", "info");
+      });
+
+      document.getElementById("btnLoadChat").addEventListener("click", async ()=>{
+        if(!currentUser) return toast("Please log in first.", "warning");
+        try{
+          const key = dateKey();
+          const snap = await db.ref(`users/${currentUser.uid}/chats/${key}`).get();
+          if(!snap.exists()) return toast("No saved chat for today.", "warning");
+          chatMessages = snap.val().messages || [];
+          renderChat();
+          toast("Loaded saved chat ✅", "success");
+        }catch(err){
+          console.error(err);
+          toast("Failed to load chat.", "danger");
+        }
+      });
+    
+
+    /******************************************************************
+     * HACKATHONS: FILTER + BOOKMARK
+     ******************************************************************/
+    function uniqueTags(){
+      const s = new Set();
+      HACKATHONS.forEach(h => (h.tags||[]).forEach(t=>s.add(t)));
+      return Array.from(s).sort();
+    }
+
+    function initHackathonFilters(){
+      const tagSel = document.getElementById("hackTag");
+      tagSel.innerHTML = `<option value="">All</option>` + uniqueTags().map(t=>`<option>${escapeHtml(t)}</option>`).join("");
+
+      ["hackSearch","hackMode","hackMonth","hackTag"].forEach(id=>{
+        document.getElementById(id).addEventListener("input", renderHackathons);
+        document.getElementById(id).addEventListener("change", renderHackathons);
+      });
+
+      document.getElementById("btnLoadBookmarks").addEventListener("click", loadBookmarks);
+    }
+
+    function hackMatches(h, q, mode, month, tag){
+      const text = `${h.name} ${h.organizer} ${(h.tags||[]).join(" ")}`.toLowerCase();
+      if(q && !text.includes(q.toLowerCase())) return false;
+      if(mode && h.mode !== mode) return false;
+      if(month && h.month !== month) return false;
+      if(tag && !(h.tags||[]).includes(tag)) return false;
+      return true;
+    }
+
+    function renderHackathons(){
+      const q = document.getElementById("hackSearch").value.trim();
+      const mode = document.getElementById("hackMode").value;
+      const month = document.getElementById("hackMonth").value;
+      const tag = document.getElementById("hackTag").value;
+
+      const list = document.getElementById("hackList");
+      list.innerHTML = "";
+
+      const filtered = HACKATHONS.filter(h => hackMatches(h,q,mode,month,tag));
+      if(filtered.length === 0){
+        list.innerHTML = `<div class="muted">No items match your filters.</div>`;
+        return;
+      }
+
+      filtered.forEach(h=>{
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4";
+        col.innerHTML = `
+          <div class="feature h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="fw-bold">${escapeHtml(h.name)}</div>
+              <span class="badge badge-soft">${escapeHtml(h.mode)}</span>
+            </div>
+            <div class="muted small mt-2">
+              <div><i class="bi bi-calendar3 me-1"></i>${escapeHtml(h.date)} (${escapeHtml(h.month)})</div>
+              <div><i class="bi bi-building me-1"></i>${escapeHtml(h.organizer)}</div>
+              <div><i class="bi bi-people me-1"></i>${escapeHtml(h.eligibility)}</div>
+            </div>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              ${(h.tags||[]).slice(0,4).map(t=>`<span class="badge badge-soft">${escapeHtml(t)}</span>`).join("")}
+            </div>
+            <div class="mt-auto pt-3 d-flex gap-2">
+              <a class="btn btn-outline-brand btn-sm w-100" href="${escapeHtml(h.link)}" target="_blank" rel="noreferrer">Open</a>
+              <button class="btn btn-brand btn-sm w-100" data-bm="${escapeHtml(h.id)}">Bookmark</button>
+            </div>
+            <button class="btn btn-outline-brand btn-sm mt-2" data-remind="${escapeHtml(h.id)}">Save reminder (store)</button>
+          </div>
+        `;
+        list.appendChild(col);
+      });
+
+      list.querySelectorAll("[data-bm]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const id = btn.getAttribute("data-bm");
+          await saveBookmark(id);
+        });
+      });
+      list.querySelectorAll("[data-remind]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const id = btn.getAttribute("data-remind");
+          await saveReminder(id);
+        });
+      });
+    }
+
+    async function saveBookmark(id){
+      if(!currentUser) return toast("Please log in first.", "warning");
+      const h = HACKATHONS.find(x=>x.id===id);
+      if(!h) return;
+      try{
+        await db.ref(`users/${currentUser.uid}/bookmarks/hackathons/${id}`).set({ ...h, savedAt: nowIso() });
+        toast("Bookmarked ✅", "success");
+      }catch(err){
+        console.error(err);
+        toast("Failed to bookmark.", "danger");
+      }
+    }
+
+    async function saveReminder(id){
+      if(!currentUser) return toast("Please log in first.", "warning");
+      const h = HACKATHONS.find(x=>x.id===id);
+      if(!h) return;
+      try{
+        await db.ref(`users/${currentUser.uid}/reminders/hackathons/${id}`).set({ ...h, reminderSetAt: nowIso() });
+        toast("Reminder saved ✅", "success");
+      }catch(err){
+        console.error(err);
+        toast("Failed to save reminder.", "danger");
+      }
+    }
+
+    async function loadBookmarks(){
+      if(!currentUser) return toast("Please log in first.", "warning");
+      try{
+        const snap = await db.ref(`users/${currentUser.uid}/bookmarks/hackathons`).get();
+        const area = document.getElementById("bookmarkArea");
+        area.innerHTML = "";
+        if(!snap.exists()){
+          area.innerHTML = `<div class="muted">No bookmarks yet.</div>`;
+          return;
+        }
+        const items = [];
+        snap.forEach(c => items.push(c.val()));
+        items.sort((a,b)=> (b.savedAt||"").localeCompare(a.savedAt||""));
+
+        area.innerHTML = items.map(h=>`
+          <div class="feature mb-2">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="fw-bold">${escapeHtml(h.name)}</div>
+              <span class="badge badge-soft">${escapeHtml(h.mode)}</span>
+            </div>
+            <div class="muted small mt-1">
+              <div><i class="bi bi-calendar3 me-1"></i>${escapeHtml(h.date)} (${escapeHtml(h.month)})</div>
+              <div><i class="bi bi-building me-1"></i>${escapeHtml(h.organizer)}</div>
+            </div>
+            <div class="mt-2 d-flex gap-2">
+              <a class="btn btn-outline-brand btn-sm" target="_blank" rel="noreferrer" href="${escapeHtml(h.link)}">Open</a>
+              <button class="btn btn-outline-brand btn-sm text-danger" data-unbm="${escapeHtml(h.id)}">Remove</button>
+            </div>
+          </div>
+        `).join("");
+
+        area.querySelectorAll("[data-unbm]").forEach(btn=>{
+          btn.addEventListener("click", async ()=>{
+            const id = btn.getAttribute("data-unbm");
+            await db.ref(`users/${currentUser.uid}/bookmarks/hackathons/${id}`).remove();
+            toast("Removed bookmark.", "info");
+            loadBookmarks();
+          });
+        });
+
+        toast("Bookmarks loaded ✅", "success");
+      }catch(err){
+        console.error(err);
+        toast("Failed to load bookmarks.", "danger");
+      }
+    }
+
+    /******************************************************************
+     * PROFILE / SETTINGS
+     ******************************************************************/
+    async function loadProfileSettings(){
+      if(!currentUser) return;
+
+      try{
+        const accSnap = await db.ref(`users/${currentUser.uid}/profile/account`).get();
+        const acc = accSnap.exists() ? accSnap.val() : {};
+        document.getElementById("profileEmail").textContent = currentUser.email;
+        document.getElementById("profileName").textContent = acc.name || "—";
+        document.getElementById("profileOrg").textContent = acc.org || "—";
+        document.getElementById("profileLevel").textContent = acc.level || "—";
+        document.getElementById("profileStream").textContent = acc.stream || "—";
+      }catch(err){ console.error(err); }
+
+      await fetchLatestProfile();
+      document.getElementById("profileJson").textContent = JSON.stringify(latestProfile || {}, null, 2);
+
+      document.getElementById("btnReloadProfile").onclick = async ()=>{
+        await fetchLatestProfile();
+        document.getElementById("profileJson").textContent = JSON.stringify(latestProfile || {}, null, 2);
+        toast("Profile reloaded ✅", "success");
+      };
+
+      document.getElementById("btnResetQuestionnaires").onclick = async ()=>{
+        if(!confirm("Reset latest profile + responses in Firebase?")) return;
+        try{
+          await db.ref(`users/${currentUser.uid}/profile/latest`).remove();
+          await db.ref(`users/${currentUser.uid}/responses`).remove();
+          toast("Reset complete ✅", "success");
+          latestProfile = null;
+          loadDashboard();
+          loadResults();
+          document.getElementById("profileJson").textContent = "{}";
+        }catch(err){
+          console.error(err);
+          toast("Reset failed.", "danger");
+        }
+      };
+
+      document.getElementById("btnClearLocal").onclick = ()=>{
+        localStorage.clear();
+        toast("Local cache cleared.", "info");
+      };
+    }
+
+    /******************************************************************
+     * GLOBAL SEARCH
+     ******************************************************************/
+    function initGlobalSearch(){
+      const map = [
+        { key:"landing", text:"landing home how it works" },
+        { key:"register", text:"register signup create account" },
+        { key:"login", text:"login signin" },
+        { key:"dashboard", text:"dashboard profile snapshot" },
+        { key:"questionnaires", text:"assessments questionnaires iq interest survey" },
+        { key:"results", text:"results profiling charts decision tree neural net" },
+        { key:"roadmap", text:"roadmap gemini plan" },
+        { key:"chatbot", text:"chatbot gemini chat" },
+        { key:"hackathons", text:"hackathons competitions contests opportunities" },
+        { key:"profile", text:"profile settings reset data" }
+      ];
+
+      const input = document.getElementById("globalSearch");
+      input.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+          e.preventDefault();
+          const q = input.value.trim().toLowerCase();
+          if(!q) return;
+          const best = map.find(m => m.text.includes(q)) || map.find(m => m.key.includes(q));
+          if(best) showView(best.key);
+          else toast("No match. Try: roadmap, chatbot, hackathons…", "info");
+        }
+      });
+    }
+
+    /******************************************************************
+     * INIT
+     ******************************************************************/
+    function init(){
+      document.getElementById("yearNow").textContent = new Date().getFullYear();
+      initRouting();
+      initGlobalSearch();
+
+      // Interest form is static UI (data-driven)
+      renderInterestForm();
+
+      initFirebase();
+      initAuthForms();
+      initQuestionnaireActions();
+      initRoadmap();
+      initChatbot();
+      initHackathonFilters();
+
+      document.getElementById("btnRecompute").addEventListener("click", recomputeAndSaveProfiling);
+    }
+
+    init();
+
+    /*
+      ===========================
+      REALTIME DB RULES (recommended for this app)
+      ===========================
+      {
+        "rules": {
+          "users": {
+            "$uid": {
+              ".read": "$uid === auth.uid",
+              ".write": "$uid === auth.uid"
+            }
+          }
+        }
+      }
+    */
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Assessment | Intel Learn</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body class="bg-soft">
+  <div id="appNavbar"></div>
+
+  <main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="mb-0">IQ & Interest Assessment</h2>
+        <p class="text-muted mb-0">Answer honestly. Your report will be generated from your inputs.</p>
+      </div>
+      <a href="./dashboard.html" class="btn btn-outline-secondary">Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <h5 class="mb-3">Part A: IQ (MCQ)</h5>
+            <div id="iqContainer" class="vstack gap-3"></div>
+          </div>
+
+          <div class="col-lg-6">
+            <h5 class="mb-3">Part B: Interest (Scale 1–5)</h5>
+            <div id="interestContainer" class="vstack gap-3"></div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="d-flex gap-2 justify-content-end">
+          <button id="btnSaveDraft" class="btn btn-outline-primary">Save Draft</button>
+          <button id="btnSubmit" class="btn btn-success">Submit & Generate Report</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3" id="toastRoot"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./js/pages/questionnairePage.js"></script>
+</body>
+</html>
